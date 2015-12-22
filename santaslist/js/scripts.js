@@ -148,7 +148,7 @@ function displayResults() {
         }
 
         if (fName.toUpperCase() == "AVA") {
-            document.getElementById("message").innerHTML = "You have a sparkly smile, soft butt and cute laugh. You are on the nice list for EVER. For INIFINITI years. And you are invited to Buddy the Elf's Birthday! Good Job.";
+            document.getElementById("message").innerHTML = "You are on the nice list for EVER. For INIFINITI years. And you are invited to Buddy the Elf's Birthday! Good Job.";
         }
 
 
