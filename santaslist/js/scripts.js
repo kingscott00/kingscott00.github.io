@@ -135,6 +135,9 @@ function displayResults() {
         if (fName.toUpperCase() == "AUSTIN") {
             document.getElementById("message").innerHTML = "Your are naughty like snot stupid booger. You get coal!";
         }
+        if (fName.toUpperCase() == "JAMES") {
+            document.getElementById("message").innerHTML = "You are on the naughty list you fucking asshole!!";
+        }
     } else {
         document.getElementById("searching").innerHTML = "Our results show that " + name + " is on the";
         document.getElementById("searching2").innerHTML = "Nice List!";
