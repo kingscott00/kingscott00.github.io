@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Record Viewer</title>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-vinyl-fill me-2"></i>
+                Record Viewer
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main container -->
+    <div class="app-container container-fluid">
+        <!-- Artist List -->
+        <div id="artist-list" class="column">
+            <h5 class="section-title">Artists</h5>
+            <!-- Collection folder filter -->
+            <div id="collection-filter" class="filter-container px-3 py-2" style="display:block !important">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="filter-header" data-bs-toggle="collapse" data-bs-target="#collection-filter-content" aria-expanded="true" aria-controls="collection-filter-content">
+                        <i class="bi bi-caret-down-fill me-1 toggle-icon"></i>
+                        <small class="text-muted">Filter by Collection</small>
+                    </div>
+                    <button id="clear-filters" class="btn btn-sm btn-outline-secondary">Clear</button>
+                </div>
+                <div id="collection-filter-content" class="collapse show mb-2">
+                    <div id="collection-filter-options" class="mb-2">
+                        <!-- Filter options will be added here dynamically -->
+                        <div class="placeholder-text text-center text-muted py-2">
+                            <small>Loading collections...</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Inline script to ensure filter visibility -->
+            <script>
+                // This inline script helps ensure the filter is visible
+                document.addEventListener('DOMContentLoaded', function() {
+                    console.log('Inline script: ensuring filter visibility');
+                    const filterContainer = document.getElementById('collection-filter');
+                    if (filterContainer) {
+                        filterContainer.style.display = 'block';
+                        filterContainer.style.visibility = 'visible';
+                        console.log('Filter container visibility enforced');
+                    } else {
+                        console.error('Filter container not found in inline script');
+                    }
+                    
+                    // Also check if we need to recreate it
+                    setTimeout(function() {
+                        if (window.ensureFilterSectionExists) {
+                            window.ensureFilterSectionExists();
+                        }
+                    }, 500);
+                });
+            </script>
+            <div class="list-group list-group-flush" id="artist-list-container"></div>
+        </div>
+        
+        <!-- Album section -  -->
+        <div class="right-section column">
+            <div id="album-list">
+                <h5 class="section-title">Albums</h5>
+                <div class="list-group list-group-flush" id="album-list-container"></div>
+            </div>
+            <div id="album-details">
+                <h5 class="section-title">Details</h5>
+                <div class="content-container" id="album-details-container"></div>
+            </div>
+            <div id="discography">
+                <h5 class="section-title">Discography</h5>
+                <div class="content-container" id="discography-container"></div>
+            </div>
+        </div>
+        
+        <!-- Wikipedia section -->
+        <div id="wiki-section" class="column">
+            <h5 class="section-title">Wikipedia</h5>
+            <div class="content-container" id="wiki-content">
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-journal-text" style="font-size: 3rem;"></i>
+                    <p class="mt-3">Select an album to view its Wikipedia article</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debug Console with DOM structure info -->
+    <div id="debug-console" class="position-fixed bottom-0 end-0 m-3 p-2 bg-light border rounded" 
+         style="display: none; max-width: 400px; max-height: 300px; overflow: auto; z-index: 1050;">
+        <div class="d-flex justify-content-between mb-2">
+            <strong>Debug Console</strong>
+            <div>
+                <button onclick="checkDomStructure()" class="btn btn-sm btn-outline-info me-2">Check DOM</button>
+                <button onclick="this.parentElement.parentElement.parentElement.style.display='none'" class="btn-close btn-sm"></button>
+            </div>
+        </div>
+        <div id="debug-messages" class="small"></div>
+    </div>
+    
+    <!-- Script to check DOM structure - Add this before other scripts -->
+    <script>
+        function checkDomStructure() {
+            const debugMessages = document.getElementById('debug-messages');
+            if (!debugMessages) return;
+            
+            // Clear previous messages
+            debugMessages.innerHTML = '<div class="fw-bold">DOM Structure Check:</div>';
+            
+            // Check key elements
+            const elements = [
+                'artist-list', 
+                'album-list-container', 
+                'album-details-container', 
+                'wiki-content',
+                'collection-filter',
+                'collection-filter-options'
+            ];
+            
+            elements.forEach(id => {
+                const el = document.getElementById(id);
+                const status = el ? 
+                    '<span class="text-success">✓ Found</span>' : 
+                    '<span class="text-danger">✗ Missing</span>';
+                
+                debugMessages.innerHTML += `<div>${id}: ${status}</div>`;
+            });
+            
+            // Also log a note about the filter container
+            if (window.scriptLoadStatus && window.scriptLoadStatus.appJsLoaded) {
+                debugMessages.innerHTML += `<div>App.js loaded: <span class="text-success">✓</span></div>`;
+            }
+        }
+        
+        // Auto-check DOM on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait a moment for everything to render
+            setTimeout(checkDomStructure, 1000);
+        });
+    </script>
+    
+    <!-- IMPORTANT: Add this script to help debug script loading issues -->
+    <script>
+        // Global script loading tracker
+        window.scriptLoadStatus = {
+            appJsLoaded: false
+        };
+        
+        // Error handler for script loading
+        function handleScriptError(scriptName, error) {
+            console.error(`Error loading ${scriptName}:`, error);
+            const debugMessages = document.getElementById('debug-messages');
+            if (debugMessages) {
+                debugMessages.innerHTML += `<div class="text-danger">${scriptName} failed to load: ${error.message}</div>`;
+            }
+            
+            // Show debug console to make the error visible
+            document.getElementById('debug-console').style.display = 'block';
+        }
+    </script>
+    
+    <!-- Custom JS - with error catching -->
+    <script src="app.js"
+            onload="window.scriptLoadStatus.appJsLoaded = true; console.log('app.js loaded');"
+            onerror="handleScriptError('app.js', new Error('Failed to load script'))">
+    </script>
+    
+    <!-- Debug toggle script -->
+    <script>
+        // Press Ctrl+D to show debug console
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                const console = document.getElementById('debug-console');
+                console.style.display = console.style.display === 'none' ? 'block' : 'none';
+            }
+        });
+        
+        // Auto-show debug console if we detect script loading issues
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                if (!window.scriptLoadStatus.appJsLoaded) {
+                    document.getElementById('debug-console').style.display = 'block';
+                    const debugMessages = document.getElementById('debug-messages');
+                    if (debugMessages) {
+                        debugMessages.innerHTML += `
+                            <div class="text-danger fw-bold">Script loading issues detected:</div>
+                            <div>app.js loaded: ${window.scriptLoadStatus.appJsLoaded}</div>
+                        `;
+                    }
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
