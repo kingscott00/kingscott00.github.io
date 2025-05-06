@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Assessment Bill Calculator</title>
+    <style>
+        :root {
+            --background-color: #f5f5f5;
+            --container-color: white;
+            --text-color: #2c3e50;
+            --button-bg: #3498db;
+            --button-hover: #2980b9;
+            --input-border: #ddd;
+            --input-bg: white;
+            --header-bg: #3498db;
+            --table-header: #f2f2f2;
+        }
+        
+        .fun-mode {
+            --background-color: black;
+            --container-color: orange;
+            --text-color: yellow;
+            --button-bg: green;
+            --button-hover: lime;
+            --input-border: yellow;
+            --input-bg: purple;
+            --header-bg: lime;
+            --table-header: magenta;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--background-color);
+            transition: background-color 0.5s;
+            position: relative;
+        }
+        
+        /* Tetris Game Styles */
+        .tetris-container {
+            position: fixed;
+            right: 20px;
+            top: 100px;
+            width: 240px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 4px solid #ff4081;
+            border-radius: 8px;
+            padding: 10px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(255, 64, 129, 0.5);
+        }
+        
+        .fun-mode .tetris-container {
+            display: block;
+            animation: slideIn 0.5s forwards;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        
+        .tetris-title {
+            color: #ff4081;
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .tetris-game {
+            width: 200px;
+            height: 400px;
+            background-color: #111;
+            margin: 0 auto;
+            display: grid;
+            grid-template-rows: repeat(20, 1fr);
+            grid-template-columns: repeat(10, 1fr);
+            border: 2px solid #444;
+        }
+        
+        .tetris-score {
+            color: white;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .tetris-controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .tetris-controls button {
+            background-color: #ff4081;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            margin: 0 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .tetris-controls button:hover {
+            background-color: #f50057;
+        }
+        
+        .tetris-cell {
+            border: 1px solid #333;
+        }
+        
+        .tetris-cell.filled {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .tetromino-I { background-color: #00f0f0; }
+        .tetromino-O { background-color: #f0f000; }
+        .tetromino-T { background-color: #a000f0; }
+        .tetromino-S { background-color: #00f000; }
+        .tetromino-Z { background-color: #f00000; }
+        .tetromino-J { background-color: #0000f0; }
+        .tetromino-L { background-color: #f0a000; }
+        
+        .fun-mode .container-wrapper {
+            max-width: calc(100% - 300px);
+        }
+        
+        h1 {
+            color: var(--text-color);
+            text-align: center;
+            transition: color 0.5s;
+        }
+        .form-container {
+            background-color: var(--container-color);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            transition: background-color 0.5s;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--text-color);
+            transition: color 0.5s;
+        }
+        select, input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            transition: background-color 0.5s, color 0.5s, border-color 0.5s;
+        }
+        button {
+            background-color: var(--button-bg);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.5s, transform 0.3s;
+            position: relative;
+        }
+        button:hover {
+            background-color: var(--button-hover);
+        }
+        .results {
+            background-color: var(--container-color);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: none;
+            transition: background-color 0.5s;
+        }
+        .results h2 {
+            color: var(--text-color);
+            margin-top: 0;
+            transition: color 0.5s;
+        }
+        .result-item {
+            margin-bottom: 10px;
+            display: flex;
+        }
+        .result-item strong {
+            width: 150px;
+            display: inline-block;
+            color: var(--text-color);
+            transition: color 0.5s;
+        }
+        .result-item span {
+            color: var(--text-color);
+            transition: color 0.5s;
+        }
+        .calendar-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .calendar {
+            background-color: var(--container-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            width: 250px;
+            transition: background-color 0.5s, transform 0.3s;
+        }
+        .fun-mode .calendar:hover {
+            transform: rotate(3deg) scale(1.05);
+        }
+        .calendar-header {
+            background-color: var(--header-bg);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px 8px 0 0;
+            transition: background-color 0.5s;
+        }
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            padding: 10px;
+        }
+        .day-header {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--text-color);
+            transition: color 0.5s;
+        }
+        .day {
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: default;
+            color: var(--text-color);
+            transition: color 0.5s, transform 0.3s;
+        }
+        .fun-mode .day:hover {
+            transform: scale(1.2);
+        }
+        .empty {
+            visibility: hidden;
+        }
+        .enrolled {
+            background-color: #3498db;
+            color: white;
+        }
+        .notice {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .print {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+            gap: 15px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-color);
+            transition: color 0.5s;
+        }
+        .legend-circle {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+        }
+        .schedule-container {
+            background-color: var(--container-color);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.5s;
+        }
+        .schedule-container h2 {
+            color: var(--text-color);
+            margin-top: 0;
+            transition: color 0.5s;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid var(--input-border);
+            padding: 8px;
+            text-align: left;
+            color: var(--text-color);
+            transition: color 0.5s, border-color 0.5s;
+        }
+        th {
+            background-color: var(--table-header);
+            font-weight: bold;
+            transition: background-color 0.5s;
+        }
+        
+        /* Fun Mode Toggle Switch */
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin-left: 10px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #ff4081;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        /* Explosion Animation */
+        .explosion {
+            position: absolute;
+            pointer-events: none;
+        }
+        .explosion-particle {
+            position: absolute;
+            background-color: #ff4081;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: explode 0.8s ease-out forwards;
+        }
+        @keyframes explode {
+            0% {
+                width: 0px;
+                height: 0px;
+                opacity: 1;
+            }
+            100% {
+                width: 100px;
+                height: 100px;
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(2);
+            }
+        }
+        
+        /* Fun Mode Animations */
+        .fun-mode h1 {
+            animation: rainbow 3s linear infinite;
+        }
+        .fun-mode button {
+            animation: pulse 2s infinite;
+        }
+        @keyframes rainbow {
+            0% { color: red; }
+            14% { color: orange; }
+            28% { color: yellow; }
+            42% { color: green; }
+            57% { color: blue; }
+            71% { color: indigo; }
+            85% { color: violet; }
+            100% { color: red; }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Spinning animation for fun mode */
+        .fun-mode .calendar {
+            animation: wobble 5s infinite;
+        }
+        @keyframes wobble {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(1deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(-1deg); }
+            100% { transform: rotate(0deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Tetris Game Container -->
+    <div class="tetris-container">
+        <div class="tetris-title">TETRIS</div>
+        <div class="tetris-score">Score: <span id="tetris-score-value">0</span></div>
+        <div id="tetris-game" class="tetris-game"></div>
+        <div class="tetris-controls">
+            <button id="tetris-left">←</button>
+            <button id="tetris-rotate">↻</button>
+            <button id="tetris-right">→</button>
+            <button id="tetris-down">↓</button>
+        </div>
+    </div>
+    
+    <div class="container-wrapper">
+        <h1>Tax Assessment Bill Calculator</h1>
+        
+        <!-- Fun Mode Toggle -->
+        <div class="mode-toggle">
+            <span>Fun Mode</span>
+            <label class="switch">
+                <input type="checkbox" id="funModeToggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+        
+        <div class="form-container">
+            <div class="form-group">
+                <label for="enrollmentDate">Assessment Enrolled Date:</label>
+                <input type="date" id="enrollmentDate" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="billType">Bill Type:</label>
+                <select id="billType">
+                    <option value="Supplemental">Supplemental</option>
+                    <option value="Escape">Escape</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="billValue">Bill Value:</label>
+                <select id="billValue">
+                    <option value="Positive">Positive</option>
+                    <option value="Negative">Negative</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="daysToNotice">Days until Notice Mailed:</label>
+                <input type="number" id="daysToNotice" value="2" min="0">
+            </div>
+            
+            <div class="form-group">
+                <label for="holdPeriod">Hold Period (days):</label>
+                <input type="number" id="holdPeriod" value="45" min="0">
+            </div>
+            
+            <button id="calculateBtn">Calculate</button>
+        </div>
+        
+        <div id="results" class="results">
+            <h2>Results</h2>
+            <div class="result-item">
+                <strong>Bill Type:</strong> <span id="resultBillType"></span>
+            </div>
+            <div class="result-item">
+                <strong>Hold Date:</strong> <span id="resultHoldDate"></span>
+            </div>
+            <div class="result-item">
+                <strong>Print Date:</strong> <span id="resultPrintDate"></span>
+            </div>
+            <div class="result-item">
+                <strong>Days Held:</strong> <span id="resultDaysHeld"></span>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-circle enrolled"></div>
+                    <span>Enrolled Date</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-circle notice"></div>
+                    <span>Notice Date</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-circle print"></div>
+                    <span>Print Date</span>
+                </div>
+            </div>
+            
+            <div id="calendar-container" class="calendar-container">
+                <!-- Calendars will be generated here -->
+            </div>
+        </div>
+        
+        <div class="schedule-container">
+            <h2>Bill Print Schedule</h2>
+            <table>
+                <tr>
+                    <th>Bill Type</th>
+                    <th>Value</th>
+                    <th>Print Schedule</th>
+                </tr>
+                <tr>
+                    <td>Supplemental</td>
+                    <td>Positive</td>
+                    <td>First Thursday of every month (except January and September)</td>
+                </tr>
+                <tr>
+                    <td>Supplemental</td>
+                    <td>Negative</td>
+                    <td>First Thursday of every month</td>
+                </tr>
+                <tr>
+                    <td>Escape</td>
+                    <td>Positive / Negative</td>
+                    <td>Last Thursday of every month</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const billTypeSelect = document.getElementById('billType');
+            const holdPeriodInput = document.getElementById('holdPeriod');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const funModeToggle = document.getElementById('funModeToggle');
+            
+            // Set default hold period based on bill type
+            billTypeSelect.addEventListener('change', function() {
+                holdPeriodInput.value = billTypeSelect.value === 'Supplemental' ? 45 : 10;
+            });
+            
+            calculateBtn.addEventListener('click', function(event) {
+                if (funModeToggle.checked) {
+                    createExplosion(event);
+                }
+                calculate();
+            });
+            
+            // Fun mode toggle
+            funModeToggle.addEventListener('change', function() {
+                if (funModeToggle.checked) {
+                    document.body.classList.add('fun-mode');
+                    initTetris();
+                } else {
+                    document.body.classList.remove('fun-mode');
+                    stopTetris();
+                }
+            });
+            
+            // Initialize with today's date
+            const today = new Date();
+            document.getElementById('enrollmentDate').valueAsDate = today;
+            
+            // Explosion animation function
+            function createExplosion(event) {
+                const explosion = document.createElement('div');
+                explosion.className = 'explosion';
+                explosion.style.left = event.clientX + 'px';
+                explosion.style.top = event.clientY + 'px';
+                document.body.appendChild(explosion);
+                
+                // Create particles
+                const colors = ['#ff4081', '#ffeb3b', '#2196f3', '#4caf50', '#9c27b0'];
+                for (let i = 0; i < 20; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'explosion-particle';
+                    particle.style.left = '0px';
+                    particle.style.top = '0px';
+                    particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    particle.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 360}deg)`;
+                    
+                    // Add random delay to each particle
+                    particle.style.animationDelay = `${Math.random() * 0.2}s`;
+                    
+                    explosion.appendChild(particle);
+                }
+                
+                // Remove explosion div after animation
+                setTimeout(() => {
+                    explosion.remove();
+                }, 1000);
+            }
+            
+            function calculate() {
+                const enrollmentDate = new Date(document.getElementById('enrollmentDate').value);
+                if (isNaN(enrollmentDate.getTime())) {
+                    alert("Please enter a valid enrollment date.");
+                    return;
+                }
+                
+                const billType = document.getElementById('billType').value;
+                const billValue = document.getElementById('billValue').value;
+                const daysToNotice = parseInt(document.getElementById('daysToNotice').value);
+                const holdPeriod = parseInt(document.getElementById('holdPeriod').value);
+                
+                // Calculate notice date
+                const noticeDate = new Date(enrollmentDate);
+                noticeDate.setDate(noticeDate.getDate() + daysToNotice);
+                
+                // Calculate hold expiry date
+                const holdDate = new Date(noticeDate);
+                holdDate.setDate(holdDate.getDate() + holdPeriod);
+                
+                // Calculate print date based on rules
+                const printDate = calculatePrintDate(holdDate, billType, billValue);
+                
+                // Calculate days held (from notice to print date)
+                const daysHeld = Math.round((printDate - noticeDate) / (1000 * 60 * 60 * 24));
+                
+                // Display results
+                document.getElementById('resultBillType').textContent = `${billType} (${billValue})`;
+                document.getElementById('resultHoldDate').textContent = formatDate(holdDate);
+                document.getElementById('resultPrintDate').textContent = formatDate(printDate);
+                document.getElementById('resultDaysHeld').textContent = daysHeld;
+                
+                // Display results div
+                document.getElementById('results').style.display = 'block';
+                
+                // Generate calendars
+                generateCalendars(enrollmentDate, noticeDate, printDate);
+            }
+            
+            function calculatePrintDate(holdDate, billType, billValue) {
+                let printDate = new Date(holdDate);
+                
+                // Find the next appropriate print day
+                if (billType === 'Supplemental') {
+                    // First Thursday of the month
+                    // But if it's positive, skip January and September
+                    let month = printDate.getMonth();
+                    let year = printDate.getFullYear();
+                    
+                    // If the hold date is past the first Thursday, move to next month
+                    const firstThursday = getFirstThursdayOfMonth(year, month);
+                    if (printDate > firstThursday) {
+                        month++;
+                        if (month > 11) {
+                            month = 0;
+                            year++;
+                        }
+                    }
+                    
+                    // Check if it's January or September and it's positive
+                    if (billValue === 'Positive') {
+                        while (month === 0 || month === 8) { // January (0) or September (8)
+                            month++;
+                            if (month > 11) {
+                                month = 0;
+                                year++;
+                            }
+                        }
+                    }
+                    
+                    // Get the first Thursday of the selected month
+                    printDate = getFirstThursdayOfMonth(year, month);
+                    
+                } else { // Escape
+                    // Last Thursday of the month
+                    let month = printDate.getMonth();
+                    let year = printDate.getFullYear();
+                    
+                    // If the hold date is past the last Thursday, move to next month
+                    const lastThursday = getLastThursdayOfMonth(year, month);
+                    if (printDate > lastThursday) {
+                        month++;
+                        if (month > 11) {
+                            month = 0;
+                            year++;
+                        }
+                    }
+                    
+                    // Get the last Thursday of the selected month
+                    printDate = getLastThursdayOfMonth(year, month);
+                }
+                
+                return printDate;
+            }
+            
+            function getFirstThursdayOfMonth(year, month) {
+                const firstDay = new Date(year, month, 1);
+                const dayOfWeek = firstDay.getDay();
+                
+                // Calculate days until the next Thursday (4 is Thursday)
+                const daysUntilThursday = (4 - dayOfWeek + 7) % 7;
+                
+                firstDay.setDate(1 + daysUntilThursday);
+                return firstDay;
+            }
+            
+            function getLastThursdayOfMonth(year, month) {
+                // Find the first day of the next month, then go back to find the last Thursday
+                const lastDay = new Date(year, month + 1, 0);
+                const dayOfWeek = lastDay.getDay();
+                
+                // Calculate days to go back to the previous Thursday (4 is Thursday)
+                const daysToGoBack = (dayOfWeek + 3) % 7;
+                
+                lastDay.setDate(lastDay.getDate() - daysToGoBack);
+                return lastDay;
+            }
+            
+            function formatDate(date) {
+                const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+                return date.toLocaleDateString('en-US', options);
+            }
+            
+            function generateCalendars(enrollmentDate, noticeDate, printDate) {
+                const calendarContainer = document.getElementById('calendar-container');
+                calendarContainer.innerHTML = '';
+                
+                const allDates = [enrollmentDate, noticeDate, printDate];
+                const monthsToShow = new Set();
+                
+                // Find unique months to show in calendars
+                allDates.forEach(date => {
+                    monthsToShow.add(`${date.getFullYear()}-${date.getMonth()}`);
+                });
+                
+                // Sort the months chronologically
+                const sortedMonths = Array.from(monthsToShow).sort();
+                
+                // Generate a calendar for each month
+                sortedMonths.forEach(monthKey => {
+                    const [year, month] = monthKey.split('-').map(Number);
+                    const calendar = createCalendar(year, month, enrollmentDate, noticeDate, printDate);
+                    calendarContainer.appendChild(calendar);
+                });
+            }
+            
+            function createCalendar(year, month, enrollmentDate, noticeDate, printDate) {
+                const calendar = document.createElement('div');
+                calendar.className = 'calendar';
+                
+                // Create calendar header
+                const header = document.createElement('div');
+                header.className = 'calendar-header';
+                header.textContent = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                calendar.appendChild(header);
+                
+                // Create days of the week header
+                const daysContainer = document.createElement('div');
+                daysContainer.className = 'days';
+                
+                // Add day headers
+                ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].forEach(dayName => {
+                    const dayHeader = document.createElement('div');
+                    dayHeader.className = 'day-header';
+                    dayHeader.textContent = dayName;
+                    daysContainer.appendChild(dayHeader);
+                });
+                
+                // Get the first day of the month and total days
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                const daysInMonth = lastDay.getDate();
+                const startDayOfWeek = firstDay.getDay();
+                
+                // Add empty cells for days before the first of the month
+                for (let i = 0; i < startDayOfWeek; i++) {
+                    const emptyDay = document.createElement('div');
+                    emptyDay.className = 'day empty';
+                    daysContainer.appendChild(emptyDay);
+                }
+                
+                // Add cells for each day of the month
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const day = document.createElement('div');
+                    day.className = 'day';
+                    day.textContent = i;
+                    
+                    const currentDate = new Date(year, month, i);
+                    
+                    // Highlight special dates
+                    if (isSameDate(currentDate, enrollmentDate)) {
+                        day.classList.add('enrolled');
+                        day.title = 'Enrollment Date';
+                    }
+                    if (isSameDate(currentDate, noticeDate)) {
+                        day.classList.add('notice');
+                        day.title = (day.title ? day.title + ', ' : '') + 'Notice Date';
+                    }
+                    if (isSameDate(currentDate, printDate)) {
+                        day.classList.add('print');
+                        day.title = (day.title ? day.title + ', ' : '') + 'Print Date';
+                    }
+                    
+                    daysContainer.appendChild(day);
+                }
+                
+                calendar.appendChild(daysContainer);
+                return calendar;
+            }
+            
+            function isSameDate(date1, date2) {
+                return date1.getDate() === date2.getDate() &&
+                       date1.getMonth() === date2.getMonth() &&
+                       date1.getFullYear() === date2.getFullYear();
+            }
+            
+            // Tetris Game Implementation
+            let tetrisGame = null;
+            let tetrisGameActive = false;
+            
+            function initTetris() {
+                if (tetrisGameActive) return;
+                
+                const tetrisGameElement = document.getElementById('tetris-game');
+                tetrisGameElement.innerHTML = '';
+                
+                // Create game grid
+                for (let row = 0; row < 20; row++) {
+                    for (let col = 0; col < 10; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'tetris-cell';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        tetrisGameElement.appendChild(cell);
+                    }
+                }
+                
+                // Reset score
+                document.getElementById('tetris-score-value').textContent = '0';
+                
+                // Initialize game
+                tetrisGame = new TetrisGame();
+                tetrisGameActive = true;
+                
+                // Add event listeners for controls
+                document.getElementById('tetris-left').addEventListener('click', () => tetrisGame.moveLeft());
+                document.getElementById('tetris-right').addEventListener('click', () => tetrisGame.moveRight());
+                document.getElementById('tetris-down').addEventListener('click', () => tetrisGame.moveDown());
+                document.getElementById('tetris-rotate').addEventListener('click', () => tetrisGame.rotate());
+                
+                // Add keyboard controls
+                document.addEventListener('keydown', handleTetrisKeydown);
+            }
+            
+            function stopTetris() {
+                if (!tetrisGameActive) return;
+                
+                if (tetrisGame) {
+                    tetrisGame.stopGame();
+                    tetrisGame = null;
+                }
+                
+                tetrisGameActive = false;
+                document.removeEventListener('keydown', handleTetrisKeydown);
+            }
+            
+            function handleTetrisKeydown(e) {
+                if (!tetrisGameActive || !tetrisGame) return;
+                
+                switch (e.key) {
+                    case 'ArrowLeft':
+                        tetrisGame.moveLeft();
+                        e.preventDefault();
+                        break;
+                    case 'ArrowRight':
+                        tetrisGame.moveRight();
+                        e.preventDefault();
+                        break;
+                    case 'ArrowDown':
+                        tetrisGame.moveDown();
+                        e.preventDefault();
+                        break;
+                    case 'ArrowUp':
+                        tetrisGame.rotate();
+                        e.preventDefault();
+                        break;
+                    case ' ':
+                        tetrisGame.hardDrop();
+                        e.preventDefault();
+                        break;
+                }
+            }
+            
+            class TetrisGame {
+                constructor() {
+                    this.grid = Array(20).fill().map(() => Array(10).fill(0));
+                    this.score = 0;
+                    this.currentTetromino = null;
+                    this.gameInterval = null;
+                    
+                    this.tetrominoes = {
+                        'I': {
+                            shape: [
+                                [0, 0, 0, 0],
+                                [1, 1, 1, 1],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0]
+                            ],
+                            className: 'tetromino-I'
+                        },
+                        'O': {
+                            shape: [
+                                [1, 1],
+                                [1, 1]
+                            ],
+                            className: 'tetromino-O'
+                        },
+                        'T': {
+                            shape: [
+                                [0, 1, 0],
+                                [1, 1, 1],
+                                [0, 0, 0]
+                            ],
+                            className: 'tetromino-T'
+                        },
+                        'S': {
+                            shape: [
+                                [0, 1, 1],
+                                [1, 1, 0],
+                                [0, 0, 0]
+                            ],
+                            className: 'tetromino-S'
+                        },
+                        'Z': {
+                            shape: [
+                                [1, 1, 0],
+                                [0, 1, 1],
+                                [0, 0, 0]
+                            ],
+                            className: 'tetromino-Z'
+                        },
+                        'J': {
+                            shape: [
+                                [1, 0, 0],
+                                [1, 1, 1],
+                                [0, 0, 0]
+                            ],
+                            className: 'tetromino-J'
+                        },
+                        'L': {
+                            shape: [
+                                [0, 0, 1],
+                                [1, 1, 1],
+                                [0, 0, 0]
+                            ],
+                            className: 'tetromino-L'
+                        }
+                    };
+                    
+                    this.spawnTetromino();
+                    this.startGame();
+                }
+                
+                startGame() {
+                    this.gameInterval = setInterval(() => {
+                        this.moveDown();
+                    }, 500);
+                }
+                
+                stopGame() {
+                    clearInterval(this.gameInterval);
+                }
+                
+                spawnTetromino() {
+                    const types = Object.keys(this.tetrominoes);
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    
+                    this.currentTetromino = {
+                        type: type,
+                        shape: JSON.parse(JSON.stringify(this.tetrominoes[type].shape)),
+                        className: this.tetrominoes[type].className,
+                        row: 0,
+                        col: Math.floor((10 - this.tetrominoes[type].shape[0].length) / 2)
+                    };
+                    
+                    if (!this.isValidMove(this.currentTetromino.row, this.currentTetromino.col, this.currentTetromino.shape)) {
+                        // Game over
+                        this.stopGame();
+                        alert('Game Over! Your score: ' + this.score);
+                        this.resetGame();
+                        return;
+                    }
+                    
+                    this.drawTetromino();
+                }
+                
+                resetGame() {
+                    this.grid = Array(20).fill().map(() => Array(10).fill(0));
+                    this.score = 0;
+                    document.getElementById('tetris-score-value').textContent = '0';
+                    this.clearBoard();
+                    this.spawnTetromino();
+                    this.startGame();
+                }
+                
+                clearBoard() {
+                    const cells = document.querySelectorAll('.tetris-cell');
+                    cells.forEach(cell => {
+                        cell.className = 'tetris-cell';
+                    });
+                }
+                
+                drawTetromino() {
+                    this.clearBoard();
+                    
+                    // Draw the fixed blocks
+                    for (let row = 0; row < 20; row++) {
+                        for (let col = 0; col < 10; col++) {
+                            if (this.grid[row][col]) {
+                                const cell = document.querySelector(`.tetris-cell[data-row="${row}"][data-col="${col}"]`);
+                                if (cell) {
+                                    cell.className = `tetris-cell filled ${this.grid[row][col]}`;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Draw the current tetromino
+                    if (this.currentTetromino) {
+                        const shape = this.currentTetromino.shape;
+                        const className = this.currentTetromino.className;
+                        
+                        for (let row = 0; row < shape.length; row++) {
+                            for (let col = 0; col < shape[row].length; col++) {
+                                if (shape[row][col]) {
+                                    const gridRow = this.currentTetromino.row + row;
+                                    const gridCol = this.currentTetromino.col + col;
+                                    
+                                    if (gridRow >= 0) {
+                                        const cell = document.querySelector(`.tetris-cell[data-row="${gridRow}"][data-col="${gridCol}"]`);
+                                        if (cell) {
+                                            cell.className = `tetris-cell filled ${className}`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                isValidMove(row, col, shape) {
+                    for (let r = 0; r < shape.length; r++) {
+                        for (let c = 0; c < shape[r].length; c++) {
+                            if (!shape[r][c]) continue;
+                            
+                            const gridRow = row + r;
+                            const gridCol = col + c;
+                            
+                            // Check boundaries
+                            if (gridCol < 0 || gridCol >= 10 || gridRow >= 20) {
+                                return false;
+                            }
+                            
+                            // Check collision with fixed blocks
+                            if (gridRow >= 0 && this.grid[gridRow][gridCol]) {
+                                return false;
+                            }
+                        }
+                    }
+                    return true;
+                }
+                
+                moveLeft() {
+                    if (this.isValidMove(
+                        this.currentTetromino.row,
+                        this.currentTetromino.col - 1,
+                        this.currentTetromino.shape
+                    )) {
+                        this.currentTetromino.col--;
+                        this.drawTetromino();
+                    }
+                }
+                
+                moveRight() {
+                    if (this.isValidMove(
+                        this.currentTetromino.row,
+                        this.currentTetromino.col + 1,
+                        this.currentTetromino.shape
+                    )) {
+                        this.currentTetromino.col++;
+                        this.drawTetromino();
+                    }
+                }
+                
+                moveDown() {
+                    if (this.isValidMove(
+                        this.currentTetromino.row + 1,
+                        this.currentTetromino.col,
+                        this.currentTetromino.shape
+                    )) {
+                        this.currentTetromino.row++;
+                        this.drawTetromino();
+                    } else {
+                        this.lockTetromino();
+                        this.clearRows();
+                        this.spawnTetromino();
+                    }
+                }
+                
+                hardDrop() {
+                    while (this.isValidMove(
+                        this.currentTetromino.row + 1,
+                        this.currentTetromino.col,
+                        this.currentTetromino.shape
+                    )) {
+                        this.currentTetromino.row++;
+                    }
+                    this.drawTetromino();
+                    this.lockTetromino();
+                    this.clearRows();
+                    this.spawnTetromino();
+                }
+                
+                rotate() {
+                    const newShape = this.rotateMatrix(this.currentTetromino.shape);
+                    
+                    if (this.isValidMove(
+                        this.currentTetromino.row,
+                        this.currentTetromino.col,
+                        newShape
+                    )) {
+                        this.currentTetromino.shape = newShape;
+                        this.drawTetromino();
+                    }
+                }
+                
+                rotateMatrix(matrix) {
+                    const N = matrix.length;
+                    const result = Array(N).fill().map(() => Array(N).fill(0));
+                    
+                    for (let i = 0; i < N; i++) {
+                        for (let j = 0; j < N; j++) {
+                            result[j][N-1-i] = matrix[i][j];
+                        }
+                    }
+                    
+                    return result;
+                }
+                
+                lockTetromino() {
+                    const shape = this.currentTetromino.shape;
+                    const className = this.currentTetromino.className;
+                    
+                    for (let row = 0; row < shape.length; row++) {
+                        for (let col = 0; col < shape[row].length; col++) {
+                            if (shape[row][col]) {
+                                const gridRow = this.currentTetromino.row + row;
+                                const gridCol = this.currentTetromino.col + col;
+                                
+                                if (gridRow >= 0) {
+                                    this.grid[gridRow][gridCol] = className;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                clearRows() {
+                    let rowsCleared = 0;
+                    
+                    for (let row = 19; row >= 0; row--) {
+                        if (this.grid[row].every(cell => cell !== 0)) {
+                            // Clear the row
+                            this.grid.splice(row, 1);
+                            this.grid.unshift(Array(10).fill(0));
+                            rowsCleared++;
+                            row++; // Check the same row again
+                        }
+                    }
+                    
+                    if (rowsCleared > 0) {
+                        // Update score
+                        const points = [0, 40, 100, 300, 1200][rowsCleared]; // Scoring system
+                        this.score += points;
+                        document.getElementById('tetris-score-value').textContent = this.score;
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
