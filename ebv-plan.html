@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>EBV Inflammation Protocol</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141416;
+    --border: rgba(255,255,255,0.06);
+    --text: #e4e4e7;
+    --text-dim: #a1a1aa;
+    --text-muted: #71717a;
+    --accent: #818cf8;
+    --accent-bg: rgba(99,102,241,0.1);
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --orange: #fb923c;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height:100vh; -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  .header {
+    background: linear-gradient(135deg, #0f172a, #1e1b4b 40%, #172554);
+    border-bottom: 1px solid rgba(99,102,241,0.2);
+    padding: 24px 16px 20px; text-align: center;
+  }
+  .header-sub { font-size:11px; letter-spacing:3px; color:var(--accent); font-weight:600; text-transform:uppercase; margin-bottom:6px; }
+  .header h1 { font-size:22px; font-weight:800; color:#c7d2fe; margin:0 0 4px; }
+  .header p { font-size:12px; color:#94a3b8; }
+
+  /* Nav tabs */
+  .nav { display:flex; overflow-x:auto; gap:0; background:rgba(0,0,0,0.4); border-bottom:1px solid var(--border); scrollbar-width:none; }
+  .nav::-webkit-scrollbar { display:none; }
+  .nav-btn {
+    flex:1; min-width:0; padding:10px 8px; border:none; background:transparent;
+    color:var(--text-muted); font-size:11px; font-weight:500; cursor:pointer;
+    border-bottom:2px solid transparent; white-space:nowrap; font-family:inherit;
+    transition:all 0.2s;
+  }
+  .nav-btn.active { color:var(--accent); border-bottom-color:var(--accent); background:rgba(99,102,241,0.05); }
+
+  /* Sections */
+  .section { display:none; padding:16px; }
+  .section.active { display:block; }
+
+  /* Cards */
+  .card {
+    border-radius:12px; overflow:hidden; margin-bottom:14px;
+  }
+  .card-blue { border:1px solid rgba(99,102,241,0.2); background:linear-gradient(135deg,rgba(30,27,75,0.4),rgba(15,23,42,0.6)); }
+  .card-green { border:1px solid rgba(34,197,94,0.25); background:rgba(34,197,94,0.04); }
+  .card-yellow { border:1px solid rgba(234,179,8,0.2); background:rgba(234,179,8,0.04); }
+  .card-red { border:1px solid rgba(239,68,68,0.2); background:rgba(239,68,68,0.04); }
+  .card-orange { border:1px solid rgba(251,146,60,0.25); background:rgba(251,146,60,0.04); }
+  .card-dark { border:1px solid var(--border); background:rgba(255,255,255,0.02); }
+
+  .card-header {
+    padding:10px 14px; font-size:12px; font-weight:800;
+    letter-spacing:1.5px; display:flex; align-items:center; gap:8px;
+  }
+  .card-blue .card-header { color:var(--accent); border-bottom:1px solid rgba(99,102,241,0.15); background:rgba(99,102,241,0.08); }
+  .card-green .card-header { color:var(--green); border-bottom:1px solid rgba(34,197,94,0.15); background:rgba(34,197,94,0.08); }
+  .card-yellow .card-header { color:var(--yellow); border-bottom:1px solid rgba(234,179,8,0.12); background:rgba(234,179,8,0.06); }
+  .card-red .card-header { color:var(--red); border-bottom:1px solid rgba(239,68,68,0.15); background:rgba(239,68,68,0.06); }
+  .card-orange .card-header { color:var(--orange); border-bottom:1px solid rgba(251,146,60,0.15); background:rgba(251,146,60,0.06); }
+  .card-dark .card-header { color:var(--text-dim); border-bottom:1px solid var(--border); background:rgba(255,255,255,0.03); }
+
+  .card-body { padding:6px 0; }
+
+  /* Rows */
+  .row { padding:10px 14px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .row:not(:last-child) { border-bottom:1px solid rgba(255,255,255,0.04); }
+  .row-label { font-size:13px; font-weight:600; color:#c7d2fe; }
+  .row-sub { font-size:11px; color:var(--text-muted); margin-top:2px; line-height:1.3; }
+  .row-value { font-size:11px; font-weight:600; color:var(--accent); flex-shrink:0; background:var(--accent-bg); padding:3px 8px; border-radius:4px; text-align:right; }
+
+  /* Status badges */
+  .badge { display:inline-block; padding:2px 7px; border-radius:4px; font-size:10px; font-weight:700; letter-spacing:0.5px; }
+  .badge-green { background:rgba(34,197,94,0.15); color:var(--green); }
+  .badge-yellow { background:rgba(234,179,8,0.15); color:var(--yellow); }
+  .badge-red { background:rgba(239,68,68,0.15); color:var(--red); }
+
+  /* Text blocks */
+  .text-block { padding:12px 14px; font-size:13px; color:#d4d4d8; line-height:1.6; }
+  .text-block p { margin-bottom:10px; }
+  .text-block p:last-child { margin-bottom:0; }
+  .text-block strong { color:#e4e4e7; }
+
+  /* Swap items */
+  .swap { padding:12px 14px; }
+  .swap:not(:last-child) { border-bottom:1px solid rgba(255,255,255,0.04); }
+  .swap-title { font-size:13px; font-weight:700; color:var(--orange); margin-bottom:4px; }
+  .swap-why { font-size:12px; color:var(--text-dim); line-height:1.4; margin-bottom:4px; }
+  .swap-to { font-size:12px; color:var(--green); line-height:1.4; }
+
+  /* Pathway diagram */
+  .pathway {
+    padding:14px; display:flex; flex-wrap:wrap; align-items:center;
+    justify-content:center; gap:6px; font-size:12px; color:#94a3b8;
+  }
+  .pathway-node {
+    background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.25);
+    border-radius:6px; padding:5px 10px; font-size:11px; font-weight:600; color:#c7d2fe;
+  }
+  .pathway-arrow { color:var(--accent); font-size:14px; }
+
+  /* Meal plan */
+  .meal { padding:10px 14px; }
+  .meal:not(:last-child) { border-bottom:1px solid rgba(255,255,255,0.04); }
+  .meal-time { font-size:11px; font-weight:700; color:var(--accent); letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; }
+  .meal-desc { font-size:13px; color:#d4d4d8; line-height:1.5; }
+
+  /* List items */
+  .list-item { padding:8px 14px; font-size:12px; color:#d4d4d8; line-height:1.4; }
+  .list-item:not(:last-child) { border-bottom:1px solid rgba(255,255,255,0.04); }
+  .list-bullet { margin-right:6px; }
+  .list-bullet.green { color:var(--green); }
+  .list-bullet.yellow { color:var(--yellow); }
+  .list-bullet.red { color:var(--red); }
+
+  /* Footer */
+  .footer { padding:20px 16px; text-align:center; font-size:11px; color:#52525b; line-height:1.5; border-top:1px solid var(--border); }
+
+  /* Section intro */
+  .section-intro { padding:12px 16px 4px; }
+  .section-intro p { font-size:13px; color:var(--text-dim); line-height:1.5; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-sub">EBV Inflammation Reduction</div>
+  <h1>Protocol Plan</h1>
+  <p>Personalized for Scott · May 2026</p>
+</div>
+
+<div class="nav" id="nav">
+  <button class="nav-btn active" onclick="showTab(0)">Baseline</button>
+  <button class="nav-btn" onclick="showTab(1)">Supplements</button>
+  <button class="nav-btn" onclick="showTab(2)">Diet Swaps</button>
+  <button class="nav-btn" onclick="showTab(3)">Meals</button>
+  <button class="nav-btn" onclick="showTab(4)">Pathway</button>
+  <button class="nav-btn" onclick="showTab(5)">Tracking</button>
+</div>
+
+<!-- TAB 0: BASELINE -->
+<div class="section active" id="tab0">
+  <div class="section-intro"><p>Get these tests done before making any changes. They give you a number to measure progress against.</p></div>
+
+  <div class="card card-blue">
+    <div class="card-header">🩸 BLOOD TESTS TO REQUEST</div>
+    <div class="card-body">
+      <div class="row"><div><div class="row-label">hsCRP</div><div class="row-sub">Inflammation marker. This is the key number.</div></div><div class="row-value">Target: &lt;1.0<br>Alarm: &gt;2.0</div></div>
+      <div class="row"><div><div class="row-label">AST & ALT</div><div class="row-sub">Liver enzymes — baseline before adding EGCG</div></div><div class="row-value">Baseline</div></div>
+      <div class="row"><div><div class="row-label">EBV Panel</div><div class="row-sub">VCA IgG, VCA IgM, EA IgG, EBNA IgG</div></div><div class="row-value">Confirm status</div></div>
+      <div class="row"><div><div class="row-label">Vitamin D (25-OH)</div><div class="row-sub">Confirm you're in optimal range since supplementing</div></div><div class="row-value">50-80 ng/mL</div></div>
+    </div>
+  </div>
+
+  <div class="card card-dark">
+    <div class="card-header">📍 WHERE & WHEN</div>
+    <div class="text-block">
+      <p><strong>Where:</strong> Ask your doctor, or order direct through Quest / Ulta Lab Tests ($30-50 per test, no doctor needed).</p>
+      <p><strong>Retest:</strong> 8-12 weeks after starting protocol. Compare numbers.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1: SUPPLEMENTS -->
+<div class="section" id="tab1">
+
+  <div class="card card-green">
+    <div class="card-header">✅ ALREADY TAKING — KEEP</div>
+    <div class="card-body">
+      <div class="row"><div><div class="row-label">Vitamin D</div><div class="row-sub">Immune modulation. Get level tested.</div></div><div><span class="badge badge-green">KEEP</span></div></div>
+      <div class="row"><div><div class="row-label">Vitamin C</div><div class="row-sub">Antioxidant. Stay under 2,000mg/day (excess → oxalate)</div></div><div><span class="badge badge-green">KEEP</span></div></div>
+      <div class="row"><div><div class="row-label">K2</div><div class="row-sub">Works with D for calcium metabolism</div></div><div><span class="badge badge-green">KEEP</span></div></div>
+      <div class="row"><div><div class="row-label">B12</div><div class="row-sub">Energy, methylation support</div></div><div><span class="badge badge-green">KEEP</span></div></div>
+      <div class="row"><div><div class="row-label">Quercetin</div><div class="row-sub">NLRP3 inhibitor + antiviral — you're already ahead</div></div><div><span class="badge badge-green">KEEP</span></div></div>
+      <div class="row"><div><div class="row-label">Cat's Claw</div><div class="row-sub">Antiviral — specifically studied for EBV</div></div><div><span class="badge badge-green">KEEP</span></div></div>
+      <div class="row"><div><div class="row-label">Zinc</div><div class="row-sub">Immune support. Don't exceed 40mg/day long-term.</div></div><div><span class="badge badge-green">KEEP</span></div></div>
+      <div class="row"><div><div class="row-label">Melatonin</div><div class="row-sub">Sleep + antioxidant + immune modulation</div></div><div><span class="badge badge-green">KEEP</span></div></div>
+    </div>
+  </div>
+
+  <div class="card card-yellow">
+    <div class="card-header">⚠️ WATCH</div>
+    <div class="card-body">
+      <div class="row"><div><div class="row-label">St. John's Wort</div><div class="row-sub">Drug interactions. MUST stop if adding minocycline or antivirals. Discuss with doctor.</div></div><div><span class="badge badge-yellow">WATCH</span></div></div>
+      <div class="row"><div><div class="row-label">Vitamin C (high dose)</div><div class="row-sub">Over 2,000mg/day converts to oxalate — counterproductive</div></div><div><span class="badge badge-yellow">CAP</span></div></div>
+    </div>
+  </div>
+
+  <div class="card card-blue">
+    <div class="card-header">💊 PHASE 1 — WEEKS 1-2: EBV FOUNDATION</div>
+    <div class="card-body">
+      <div class="row"><div><div class="row-label">L-Lysine</div><div class="row-sub">Blocks viral arginine. NOW Foods, Jarrow.</div></div><div class="row-value">1,000mg/day<br>500mg 2×</div></div>
+      <div class="row"><div><div class="row-label">Monolaurin</div><div class="row-sub">Antiviral fatty acid. Ecological Formulas 600mg.</div></div><div class="row-value">600-1,200mg<br>with meals</div></div>
+    </div>
+  </div>
+
+  <div class="card card-blue">
+    <div class="card-header">💊 PHASE 2 — WEEKS 3-4: ANTI-INFLAMMATORY</div>
+    <div class="card-body">
+      <div class="row"><div><div class="row-label">Luteolin</div><div class="row-sub">NLRP3 inhibitor. Stacks well with your quercetin. Neurogan, Double Wood.</div></div><div class="row-value">200mg/day<br>with food</div></div>
+      <div class="row"><div><div class="row-label">Boswellia</div><div class="row-sub">5-LOX inhibitor. Need 65% boswellic acids min. Take with fat.</div></div><div class="row-value">500mg 2×/day<br>with fat meal</div></div>
+    </div>
+  </div>
+
+  <div class="card card-blue">
+    <div class="card-header">💊 PHASE 3 — WEEK 5+: EXPAND</div>
+    <div class="card-body">
+      <div class="row"><div><div class="row-label">EGCG</div><div class="row-sub">NF-κB inhibitor. STAY UNDER 600mg. Never empty stomach. Check liver enzymes.</div></div><div class="row-value">300-400mg/day<br>with food</div></div>
+      <div class="row"><div><div class="row-label">Holy Basil (Tulsi)</div><div class="row-sub">Adaptogen. Organic India brand. Skip if using resB.</div></div><div class="row-value">300-500mg/day<br>morning</div></div>
+      <div class="row"><div><div class="row-label">resB (Resbiotic)</div><div class="row-sub">MMP9/NLRP3 pathway. Contains holy basil + turmeric.</div></div><div class="row-value">2 caps/day<br>with meals</div></div>
+      <div class="row"><div><div class="row-label">Baby Aspirin</div><div class="row-sub">COX inhibitor. Any pharmacy brand. Take with food.</div></div><div class="row-value">81mg<br>2×/week</div></div>
+    </div>
+  </div>
+
+  <div class="card card-dark">
+    <div class="card-header">🏥 LATER IF NEEDED — PRESCRIPTION</div>
+    <div class="card-body">
+      <div class="row"><div><div class="row-label">Low-dose Minocycline</div><div class="row-sub">Asprey's "if nothing else works." Anti-inflammatory, crosses blood-brain barrier. STOP SJW first.</div></div><div><span class="badge badge-yellow">Rx</span></div></div>
+      <div class="row"><div><div class="row-label">Valacyclovir (Valtrex)</div><div class="row-sub">Antiviral commonly prescribed for chronic EBV by functional medicine docs.</div></div><div><span class="badge badge-yellow">Rx</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: DIET SWAPS -->
+<div class="section" id="tab2">
+  <div class="section-intro"><p>Your diet is already strong. These targeted swaps address the specific foods working against your EBV and inflammation.</p></div>
+
+  <div class="card card-green">
+    <div class="card-header">✅ WHAT YOU'RE DOING RIGHT</div>
+    <div class="card-body">
+      <div class="list-item"><span class="list-bullet green">●</span> <strong>Grass-fed beef</strong> — zero oxalate, high lysine, anti-inflammatory</div>
+      <div class="list-item"><span class="list-bullet green">●</span> <strong>Free-range eggs</strong> — zero oxalate, high lysine, nutrient powerhouse</div>
+      <div class="list-item"><span class="list-bullet green">●</span> <strong>Butter</strong> — anti-inflammatory, Bulletproof staple</div>
+      <div class="list-item"><span class="list-bullet green">●</span> <strong>MCT oil</strong> — brain fuel, anti-inflammatory</div>
+      <div class="list-item"><span class="list-bullet green">●</span> <strong>Avocados</strong> — low oxalate, healthy fat</div>
+      <div class="list-item"><span class="list-bullet green">●</span> <strong>Blueberries</strong> — low oxalate, high antioxidant</div>
+      <div class="list-item"><span class="list-bullet green">●</span> <strong>Sauerkraut</strong> — fermented, great for gut</div>
+      <div class="list-item"><span class="list-bullet green">●</span> <strong>Coffee + MCT</strong> — low oxalate, Asprey approved</div>
+      <div class="list-item"><span class="list-bullet green">●</span> <strong>Gluten-free</strong> — reduces inflammation, especially with EBV</div>
+    </div>
+  </div>
+
+  <div class="card card-orange">
+    <div class="card-header">🔄 CRITICAL SWAPS</div>
+    <div class="card-body">
+      <div class="swap">
+        <div class="swap-title">1. Peanut Butter → Macadamia or Coconut Butter</div>
+        <div class="swap-why">WHY: Peanuts are high oxalate AND very high arginine — the amino acid EBV needs to replicate. This is your #1 dietary antagonist.</div>
+        <div class="swap-to">✓ Macadamia butter — lowest oxalate nut, low arginine, tastes great<br>✓ Coconut butter (manna) — lauric acid converts to monolaurin</div>
+      </div>
+      <div class="swap">
+        <div class="swap-title">2. Almond Milk → Coconut or Macadamia Milk</div>
+        <div class="swap-why">WHY: Almonds are extremely high oxalate. Liquid form concentrates it.</div>
+        <div class="swap-to">✓ Unsweetened coconut milk — low oxalate, contains lauric acid<br>✓ Macadamia milk — great but pricier</div>
+      </div>
+      <div class="swap">
+        <div class="swap-title">3. Mixed Nuts & Cashews → Macadamia Nuts</div>
+        <div class="swap-why">WHY: Most mixes contain almonds/peanuts. Cashews are moderate-high oxalate.</div>
+        <div class="swap-to">✓ Macadamias — the one nut you can snack freely on<br>✓ Coconut chips — satisfying crunch, low oxalate</div>
+      </div>
+      <div class="swap">
+        <div class="swap-title">4. Sweet Potatoes — Change Prep & Reduce</div>
+        <div class="swap-why">WHY: 70-90mg oxalate per half cup baked.</div>
+        <div class="swap-to">✓ BOIL instead of bake (leaches oxalate into water)<br>✓ Limit to ½ cup, 2-3x per week max<br>✓ Better: peeled new potatoes (red-skin), boiled — half the oxalate</div>
+      </div>
+      <div class="swap">
+        <div class="swap-title">5. Snack Audit</div>
+        <div class="swap-why">Catalina Crunch — check for almond flour. Boulder Canyon — check oil type. Siete — cassava ok, avoid almond flour ones.</div>
+        <div class="swap-to">✓ Better: macadamias, coconut chips, jerky, pork rinds, olives, hard-boiled eggs, rice crackers + coconut butter</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-red">
+    <div class="card-header">🚫 HIGH-ARGININE FOODS — FEEDS EBV</div>
+    <div class="card-body">
+      <div class="list-item"><span class="list-bullet red">✕</span> <strong>Peanuts/peanut butter</strong> — #1 priority to remove</div>
+      <div class="list-item"><span class="list-bullet red">✕</span> <strong>Almonds/almond milk</strong> — high oxalate + arginine</div>
+      <div class="list-item"><span class="list-bullet red">✕</span> <strong>Cashews</strong> — moderate-high both</div>
+      <div class="list-item"><span class="list-bullet red">✕</span> <strong>Chocolate/cacao</strong> — high oxalate + arginine</div>
+      <div class="list-item"><span class="list-bullet red">✕</span> <strong>Oats</strong> — moderate oxalate + arginine</div>
+      <div class="list-item"><span class="list-bullet red">✕</span> <strong>Sesame seeds</strong> — high oxalate</div>
+      <div class="list-item"><span class="list-bullet red">✕</span> <strong>Soy products</strong> — inflammatory + arginine</div>
+    </div>
+  </div>
+
+  <div class="card card-yellow">
+    <div class="card-header">⚠️ MODERATE — KEEP BUT WATCH</div>
+    <div class="card-body">
+      <div class="list-item"><span class="list-bullet yellow">~</span> <strong>Strawberries</strong> — moderate oxalate. Shift ratio toward more blueberries.</div>
+      <div class="list-item"><span class="list-bullet yellow">~</span> <strong>Bananas</strong> — OK but high sugar. Keep to 1/day.</div>
+      <div class="list-item"><span class="list-bullet yellow">~</span> <strong>Honey</strong> — better than sugar but still sugar. Use sparingly.</div>
+    </div>
+  </div>
+
+  <div class="card card-dark">
+    <div class="card-header">⏳ IMPORTANT: TRANSITION GRADUALLY</div>
+    <div class="text-block">
+      <p>Make these swaps over 2-3 weeks, not overnight. Cutting oxalates too fast can trigger "oxalate dumping" — where stored crystals release and cause flareups. Your pattern of cycling between food types may have been causing this already. <strong>Consistency is key.</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: MEALS -->
+<div class="section" id="tab3">
+  <div class="section-intro"><p>A simple framework based on your current eating style, adjusted for anti-inflammation and EBV.</p></div>
+
+  <div class="card card-blue">
+    <div class="card-header">🍽️ DAILY STRUCTURE</div>
+    <div class="card-body">
+      <div class="meal">
+        <div class="meal-time">☀️ Morning</div>
+        <div class="meal-desc">Coffee with MCT oil + grass-fed butter (Bulletproof style). Optional: 2-3 eggs in butter/ghee with mushrooms and zucchini.</div>
+      </div>
+      <div class="meal">
+        <div class="meal-time">🌤️ Midday (lighter)</div>
+        <div class="meal-desc">Bone broth, leftover protein with vegetables, or eggs if you didn't have them morning.</div>
+      </div>
+      <div class="meal">
+        <div class="meal-time">🌙 Main Meal</div>
+        <div class="meal-desc">Protein + vegetables + optional starch. See weekly rotation below.</div>
+      </div>
+      <div class="meal">
+        <div class="meal-time">🥜 Snacks</div>
+        <div class="meal-desc">Macadamia nuts, coconut chips, hard-boiled eggs, olives, blueberries, GF rice crackers with coconut butter.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-dark">
+    <div class="card-header">📅 WEEKLY ROTATION</div>
+    <div class="card-body">
+      <div class="row"><div><div class="row-label">Beef days (3×/week)</div><div class="row-sub">Steak, burger patty, or ground beef with roasted cauliflower, broccoli, or asparagus</div></div></div>
+      <div class="row"><div><div class="row-label">Fish days (1-2×/week)</div><div class="row-sub">Wild salmon or sardines with white rice and bok choy</div></div></div>
+      <div class="row"><div><div class="row-label">Chicken days (1-2×/week)</div><div class="row-sub">Chicken thighs with zucchini, mushrooms, and onions</div></div></div>
+      <div class="row"><div><div class="row-label">Egg days (1-2×/week)</div><div class="row-sub">Frittata or big scramble with lots of vegetables — your lighter/meatless option</div></div></div>
+    </div>
+  </div>
+
+  <div class="card card-yellow">
+    <div class="card-header">⚡ CONSISTENCY RULE</div>
+    <div class="text-block">
+      <p>Keep your diet relatively stable day to day. Cycling between all-meat and all-potato weeks likely triggered oxalate dumping and mystery flareups. Eat a mix of protein + vegetables + small starch every day rather than bingeing and eliminating.</p>
+    </div>
+  </div>
+
+  <div class="card card-dark">
+    <div class="card-header">🍞 BREAD NOTE</div>
+    <div class="text-block">
+      <p>Your Costco GF bread is fine — just check that it's rice-flour-based rather than almond flour or heavy tapioca starch. Canyon Bakehouse and Schar are good brands. Enjoy with grass-fed butter.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: PATHWAY -->
+<div class="section" id="tab4">
+  <div class="section-intro"><p>Understanding the inflammation cascade and where each supplement intervenes.</p></div>
+
+  <div class="card card-blue">
+    <div class="card-header">🔬 THE NLRP3 CASCADE</div>
+    <div class="pathway">
+      <span class="pathway-node">Cell Stress</span>
+      <span class="pathway-arrow">→</span>
+      <span class="pathway-node">NLRP3 activates</span>
+      <span class="pathway-arrow">→</span>
+      <span class="pathway-node">IL-1β released</span>
+      <span class="pathway-arrow">→</span>
+      <span class="pathway-node">IL-6 triggered</span>
+      <span class="pathway-arrow">→</span>
+      <span class="pathway-node">Liver → hsCRP</span>
+    </div>
+  </div>
+
+  <div class="card card-dark">
+    <div class="card-header">🧠 BRAIN LOOP</div>
+    <div class="pathway">
+      <span class="pathway-node">Amyloid</span>
+      <span class="pathway-arrow">→</span>
+      <span class="pathway-node">triggers NLRP3</span>
+      <span class="pathway-arrow">→</span>
+      <span class="pathway-node">creates more amyloid</span>
+      <span class="pathway-arrow">→</span>
+      <span style="font-size:12px;color:#ef4444;">self-reinforcing loop</span>
+    </div>
+  </div>
+
+  <div class="card card-dark">
+    <div class="card-header">🦠 EBV CONNECTION</div>
+    <div class="text-block">
+      <p>EBV has a protein (BILF1) that evades the NLRP3 inflammasome. When NLRP3 is properly activated, it can actually impair viral replication. The supplements target multiple points in this cascade.</p>
+    </div>
+  </div>
+
+  <div class="card card-blue">
+    <div class="card-header">🎯 WHAT EACH SUPPLEMENT TARGETS</div>
+    <div class="card-body">
+      <div class="row"><div><div class="row-label">Quercetin + Luteolin</div><div class="row-sub">NLRP3 inflammasome directly</div></div><div class="row-value">NLRP3</div></div>
+      <div class="row"><div><div class="row-label">Boswellia</div><div class="row-sub">5-LOX pathway (leukotrienes)</div></div><div class="row-value">5-LOX</div></div>
+      <div class="row"><div><div class="row-label">EGCG</div><div class="row-sub">NF-κB (master inflammation switch)</div></div><div class="row-value">NF-κB</div></div>
+      <div class="row"><div><div class="row-label">Aspirin</div><div class="row-sub">COX pathway (prostaglandins)</div></div><div class="row-value">COX</div></div>
+      <div class="row"><div><div class="row-label">resB</div><div class="row-sub">MMP-9 → NLRP3 pathway</div></div><div class="row-value">MMP-9</div></div>
+      <div class="row"><div><div class="row-label">L-Lysine</div><div class="row-sub">Competes with arginine to starve EBV</div></div><div class="row-value">Arginine</div></div>
+      <div class="row"><div><div class="row-label">Monolaurin</div><div class="row-sub">Disrupts viral lipid envelope</div></div><div class="row-value">Viral Coat</div></div>
+      <div class="row"><div><div class="row-label">Cat's Claw</div><div class="row-sub">Antiviral + immune modulation (already taking)</div></div><div class="row-value">Immune</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: TRACKING -->
+<div class="section" id="tab5">
+  <div class="section-intro"><p>Simple tracking to measure whether the protocol is working.</p></div>
+
+  <div class="card card-blue">
+    <div class="card-header">📊 TRACKING SCHEDULE</div>
+    <div class="card-body">
+      <div class="row"><div><div class="row-label">Daily (5 seconds)</div><div class="row-sub">Rate energy 1-10 each morning. Note any flareups.</div></div><div class="row-value">Every day</div></div>
+      <div class="row"><div><div class="row-label">Weekly</div><div class="row-sub">Note diet changes, new supplements, stressors.</div></div><div class="row-value">Sundays</div></div>
+      <div class="row"><div><div class="row-label">Blood retest</div><div class="row-sub">hsCRP + liver enzymes. Compare to baseline.</div></div><div class="row-value">8-12 weeks</div></div>
+    </div>
+  </div>
+
+  <div class="card card-dark">
+    <div class="card-header">📚 RESOURCES</div>
+    <div class="card-body">
+      <div class="list-item"><span class="list-bullet green">→</span> <a href="https://substack.daveasprey.com" style="color:var(--accent);">Dave Asprey's Substack</a></div>
+      <div class="list-item"><span class="list-bullet green">→</span> <a href="https://daveasprey.com/2026-low-ox-reset/" style="color:var(--accent);">30-Day Low-Ox Reset</a></div>
+      <div class="list-item"><span class="list-bullet green">→</span> <a href="https://daveasprey.com/1361-oxalates/" style="color:var(--accent);">Podcast Ep. 1361 — Oxalates Masterclass</a></div>
+      <div class="list-item"><span class="list-bullet green">→</span> <a href="https://wholehealthchicago.com/blog/2025/12/08/treating-your-epstein-barr-flares" style="color:var(--accent);">WholeHealth Chicago — EBV Flares</a></div>
+      <div class="list-item"><span class="list-bullet green">→</span> <a href="https://connect.mayoclinic.org/discussion/ebv-reactivation-chronic-ebv/" style="color:var(--accent);">Mayo Clinic Connect — EBV Community</a></div>
+    </div>
+  </div>
+
+  <div class="card card-yellow">
+    <div class="card-header">⚕️ DISCLAIMER</div>
+    <div class="text-block">
+      <p>This is not medical advice. Consult your doctor before starting new supplements, especially if taking prescription medications. St. John's Wort has significant drug interactions — discuss with your doctor before adding anything new to your stack.</p>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  EBV Inflammation Reduction Protocol · May 2026<br>
+  Based on Dave Asprey's Bulletproof framework + EBV functional medicine research
+</div>
+
+<script>
+function showTab(n) {
+  document.querySelectorAll('.section').forEach((s,i) => s.classList.toggle('active', i===n));
+  document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('active', i===n));
+}
+</script>
+</body>
+</html>
