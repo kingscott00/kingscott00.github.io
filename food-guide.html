@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Anti-Inflammation Food Guide</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141416;
+    --border: rgba(255,255,255,0.06);
+    --text: #e4e4e7;
+    --text-dim: #a1a1aa;
+    --text-muted: #71717a;
+    --accent: #818cf8;
+    --accent-bg: rgba(99,102,241,0.1);
+    --green: #22c55e;
+    --green-bg: #052e16;
+    --green-border: #166534;
+    --green-text: #bbf7d0;
+    --green-header: #14532d;
+    --yellow: #eab308;
+    --yellow-bg: #1a1800;
+    --yellow-border: #854d0e;
+    --yellow-text: #fef08a;
+    --yellow-header: #422006;
+    --red: #ef4444;
+    --red-bg: #1a0505;
+    --red-border: #991b1b;
+    --red-text: #fecaca;
+    --red-header: #450a0a;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .header {
+    background: linear-gradient(135deg, #0f172a, #1e1b4b 40%, #172554);
+    border-bottom: 1px solid rgba(99,102,241,0.2);
+    padding: 20px 16px 16px;
+    text-align: center;
+  }
+  .header-sub { font-size:11px; letter-spacing:3px; color:var(--accent); font-weight:600; text-transform:uppercase; margin-bottom:6px; }
+  .header h1 { font-size:22px; font-weight:800; margin:0 0 4px; color:#c7d2fe; }
+  .header p { font-size:12px; color:#94a3b8; }
+
+  .cat-scroll {
+    display:flex; overflow-x:auto; gap:8px; padding:12px 16px;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;
+    background:rgba(0,0,0,0.3); border-bottom:1px solid var(--border);
+  }
+  .cat-scroll::-webkit-scrollbar { display:none; }
+  .cat-btn {
+    flex-shrink:0; padding:8px 14px; border-radius:20px;
+    border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04);
+    color:var(--text-dim); font-size:13px; font-weight:400; cursor:pointer;
+    white-space:nowrap; transition:all 0.2s; font-family:inherit;
+  }
+  .cat-btn.active {
+    border-color:rgba(129,140,248,0.5);
+    background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(79,70,229,0.15));
+    color:#c7d2fe; font-weight:600;
+  }
+
+  .zone-filter { display:flex; gap:6px; padding:10px 16px; justify-content:center; }
+  .zone-btn {
+    padding:5px 14px; border-radius:6px; border:1px solid rgba(255,255,255,0.08);
+    background:transparent; color:var(--text-muted); font-size:12px;
+    font-weight:600; cursor:pointer; transition:all 0.2s; font-family:inherit;
+  }
+  .zone-btn.active-all { border-color:var(--text-dim); color:var(--text-dim); background:rgba(255,255,255,0.04); }
+  .zone-btn.active-green { border-color:var(--green); color:var(--green); background:rgba(34,197,94,0.08); }
+  .zone-btn.active-yellow { border-color:var(--yellow); color:var(--yellow); background:rgba(234,179,8,0.08); }
+  .zone-btn.active-red { border-color:var(--red); color:var(--red); background:rgba(239,68,68,0.08); }
+
+  .content { padding:4px 16px 24px; }
+
+  .zone-card { margin-bottom:14px; border-radius:12px; overflow:hidden; }
+  .zone-card.green { border:1px solid var(--green-border); background:var(--green-bg); }
+  .zone-card.yellow { border:1px solid var(--yellow-border); background:var(--yellow-bg); }
+  .zone-card.red { border:1px solid var(--red-border); background:var(--red-bg); }
+
+  .zone-header { padding:10px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .zone-card.green .zone-header { background:var(--green-header); border-bottom:1px solid var(--green-border); }
+  .zone-card.yellow .zone-header { background:var(--yellow-header); border-bottom:1px solid var(--yellow-border); }
+  .zone-card.red .zone-header { background:var(--red-header); border-bottom:1px solid var(--red-border); }
+
+  .zone-label { font-size:12px; font-weight:800; letter-spacing:1.5px; }
+  .zone-card.green .zone-label { color:var(--green); }
+  .zone-card.yellow .zone-label { color:var(--yellow); }
+  .zone-card.red .zone-label { color:var(--red); }
+  .zone-sublabel { font-size:11px; opacity:0.6; margin-left:8px; }
+  .zone-card.green .zone-sublabel { color:var(--green-text); }
+  .zone-card.yellow .zone-sublabel { color:var(--yellow-text); }
+  .zone-card.red .zone-sublabel { color:var(--red-text); }
+  .zone-count { font-size:11px; opacity:0.5; font-weight:600; }
+  .zone-card.green .zone-count { color:var(--green); }
+  .zone-card.yellow .zone-count { color:var(--yellow); }
+  .zone-card.red .zone-count { color:var(--red); }
+
+  .food-item { padding:10px 14px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .zone-card.green .food-item:not(:last-child) { border-bottom:1px solid rgba(22,101,52,0.33); }
+  .zone-card.yellow .food-item:not(:last-child) { border-bottom:1px solid rgba(133,77,14,0.33); }
+  .zone-card.red .food-item:not(:last-child) { border-bottom:1px solid rgba(153,27,27,0.33); }
+
+  .food-name { font-size:14px; font-weight:500; flex-shrink:0; }
+  .zone-card.green .food-name { color:var(--green-text); }
+  .zone-card.yellow .food-name { color:var(--yellow-text); }
+  .zone-card.red .food-name { color:var(--red-text); }
+  .food-note { font-size:11px; opacity:0.5; text-align:right; line-height:1.3; flex-shrink:1; }
+  .zone-card.green .food-note { color:var(--green-text); }
+  .zone-card.yellow .food-note { color:var(--yellow-text); }
+  .zone-card.red .food-note { color:var(--red-text); }
+
+  .supp-card {
+    margin:0 16px 24px; border-radius:12px;
+    border:1px solid rgba(99,102,241,0.2);
+    background:linear-gradient(135deg,rgba(30,27,75,0.4),rgba(15,23,42,0.6));
+    overflow:hidden;
+  }
+  .supp-header {
+    padding:12px 14px; border-bottom:1px solid rgba(99,102,241,0.15);
+    background:rgba(99,102,241,0.08);
+  }
+  .supp-header span:first-child { font-size:12px; font-weight:800; color:var(--accent); letter-spacing:1.5px; }
+  .supp-header span:last-child { font-size:11px; color:#94a3b8; margin-left:8px; }
+  .supp-item { padding:9px 14px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .supp-item:not(:last-child) { border-bottom:1px solid rgba(99,102,241,0.08); }
+  .supp-name { font-size:13px; font-weight:600; color:#c7d2fe; }
+  .supp-purpose { font-size:11px; color:#94a3b8; opacity:0.7; }
+  .supp-dose {
+    font-size:11px; font-weight:600; color:var(--accent); flex-shrink:0;
+    background:var(--accent-bg); padding:3px 8px; border-radius:4px; text-align:right;
+  }
+
+  .tips-card {
+    margin:0 16px 24px; padding:14px; border-radius:12px;
+    border:1px solid rgba(234,179,8,0.2); background:rgba(234,179,8,0.04);
+  }
+  .tips-title { font-size:12px; font-weight:800; color:var(--yellow); letter-spacing:1px; margin-bottom:10px; }
+  .tip-item { font-size:12px; color:#d4d4d8; padding:5px 0; line-height:1.4; }
+  .tip-item:not(:last-child) { border-bottom:1px solid rgba(234,179,8,0.08); }
+  .tip-bullet { color:var(--yellow); margin-right:6px; }
+
+  .footer {
+    padding:16px; text-align:center; font-size:11px; color:#52525b;
+    line-height:1.5; border-top:1px solid var(--border);
+  }
+
+  .hidden { display:none !important; }
+
+  /* Search */
+  .search-wrap { padding:8px 16px 4px; }
+  .search-input {
+    width:100%; padding:8px 12px; border-radius:8px;
+    border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04);
+    color:var(--text); font-size:13px; font-family:inherit; outline:none;
+  }
+  .search-input:focus { border-color:rgba(129,140,248,0.4); }
+  .search-input::placeholder { color:var(--text-muted); }
+
+  .personal-flags {
+    margin:0 16px 14px; padding:12px 14px; border-radius:12px;
+    border:1px solid rgba(251,146,60,0.3); background:rgba(251,146,60,0.06);
+  }
+  .pf-title { font-size:12px; font-weight:800; color:#fb923c; letter-spacing:1px; margin-bottom:8px; }
+  .pf-item { font-size:12px; color:#fed7aa; padding:4px 0; line-height:1.4; }
+  .pf-item:not(:last-child) { border-bottom:1px solid rgba(251,146,60,0.1); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-sub">Anti-Inflammation Protocol</div>
+  <h1>Food Guide</h1>
+  <p>Bulletproof-inspired · Low Oxalate · EBV-friendly</p>
+</div>
+
+<div class="search-wrap">
+  <input type="text" class="search-input" placeholder="Search foods..." id="searchInput" autocomplete="off">
+</div>
+
+<div class="cat-scroll" id="catScroll"></div>
+<div class="zone-filter" id="zoneFilter"></div>
+
+<!-- Personal Flags -->
+<div class="personal-flags" id="personalFlags">
+  <div class="pf-title">⚠️ YOUR SWAP LIST</div>
+  <div class="pf-item">🔴 <b>Peanut butter</b> → Macadamia butter or coconut butter (PB is high oxalate + high arginine = feeds EBV)</div>
+  <div class="pf-item">🔴 <b>Almond milk</b> → Coconut milk or macadamia milk (almond = high oxalate)</div>
+  <div class="pf-item">🔴 <b>Mixed nuts/cashews</b> → Macadamia nuts or coconut chips (most nuts are high oxalate + arginine)</div>
+  <div class="pf-item">🟡 <b>Sweet potatoes</b> → Boil & limit to ½ cup, or swap for peeled new potatoes</div>
+  <div class="pf-item">🟡 <b>Strawberries</b> → Shift ratio toward more blueberries (lower oxalate)</div>
+  <div class="pf-item">🟡 <b>Bananas</b> → OK moderate, but high sugar — keep to 1/day</div>
+  <div class="pf-item">✅ <b>Grass-fed beef, eggs, blueberries, butter, MCT, avocados, sauerkraut, coffee</b> — all great, keep these</div>
+</div>
+
+<div class="content" id="foodContent"></div>
+
+<div class="supp-card">
+  <div class="supp-header">
+    <span>💊 SUPPLEMENT STACK</span>
+    <span>Asprey Protocol + EBV</span>
+  </div>
+  <div id="suppList"></div>
+</div>
+
+<div class="tips-card">
+  <div class="tips-title">⚡ KEY TIPS</div>
+  <div id="tipsList"></div>
+</div>
+
+<div class="footer">
+  Based on Dave Asprey's Bulletproof framework, low-oxalate research, and EBV functional medicine protocols.<br>
+  Not medical advice — consult your doctor before making changes.
+</div>
+
+<script>
+const categories = [
+  {
+    name:"Proteins", icon:"🥩",
+    green:[
+      {food:"Grass-fed beef",note:"Anti-inflammatory omega-3s"},
+      {food:"Wild-caught salmon",note:"High EPA/DHA"},
+      {food:"Pasture-raised eggs",note:"Low oxalate, nutrient-dense"},
+      {food:"Chicken thighs",note:"Versatile, well-tolerated"},
+      {food:"Sardines",note:"Omega-3 powerhouse"},
+      {food:"Turkey",note:"Lean, low-inflammatory"},
+      {food:"Lamb",note:"Grass-fed preferred"},
+      {food:"Bone broth",note:"Gut-healing collagen"}
+    ],
+    yellow:[
+      {food:"Conventional beef",note:"Higher omega-6 ratio"},
+      {food:"Pork",note:"Moderate — quality matters"},
+      {food:"Farm-raised fish",note:"Lower omega-3 than wild"},
+      {food:"Whey protein",note:"OK if tolerated, watch dairy"}
+    ],
+    red:[
+      {food:"Processed meats",note:"Nitrates, preservatives"},
+      {food:"Soy protein",note:"Phytoestrogens, inflammatory"},
+      {food:"Breaded/fried meats",note:"Oxidized seed oils"},
+      {food:"Farmed tilapia",note:"Very high omega-6"}
+    ]
+  },
+  {
+    name:"Vegetables", icon:"🥦",
+    green:[
+      {food:"Broccoli",note:"Only 2mg oxalate/cup"},
+      {food:"Cauliflower",note:"Great potato substitute"},
+      {food:"Cabbage",note:"Low oxalate, anti-inflammatory"},
+      {food:"Bok choy",note:"High calcium, low oxalate"},
+      {food:"Zucchini",note:"Versatile, very low oxalate"},
+      {food:"Cucumbers (peeled)",note:"Hydrating, near-zero oxalate"},
+      {food:"Asparagus",note:"Low oxalate, prebiotic"},
+      {food:"Iceberg/romaine lettuce",note:"Low oxalate greens"},
+      {food:"Mushrooms",note:"Immune-supporting, low oxalate"},
+      {food:"White onions",note:"Quercetin source"}
+    ],
+    yellow:[
+      {food:"Sweet potatoes (small amt)",note:"28-90mg oxalate/serving"},
+      {food:"Carrots",note:"Moderate oxalate when cooked"},
+      {food:"Green beans",note:"Moderate oxalate"},
+      {food:"Bell peppers",note:"Contain luteolin, moderate ox"},
+      {food:"Tomatoes",note:"Nightshade — watch sensitivity"},
+      {food:"Celery",note:"Luteolin source, moderate ox"},
+      {food:"Brussels sprouts",note:"Moderate, better cooked"}
+    ],
+    red:[
+      {food:"Spinach",note:"750mg+ oxalate/cup — worst"},
+      {food:"Swiss chard",note:"Extremely high oxalate"},
+      {food:"Beets & beet greens",note:"Very high oxalate"},
+      {food:"Rhubarb",note:"Among highest oxalate foods"},
+      {food:"Curly kale (large amts)",note:"Moderate-high, limit qty"},
+      {food:"Potatoes (unpeeled)",note:"97mg oxalate in skin"}
+    ]
+  },
+  {
+    name:"Fats & Oils", icon:"🫒",
+    green:[
+      {food:"Grass-fed butter/ghee",note:"Anti-inflammatory staple"},
+      {food:"Extra virgin olive oil",note:"Polyphenols, anti-inflammatory"},
+      {food:"Coconut oil",note:"Contains lauric acid (→monolaurin)"},
+      {food:"Avocado oil",note:"High smoke point, healthy fats"},
+      {food:"MCT oil",note:"Brain fuel, Asprey favorite"},
+      {food:"Avocados",note:"Low oxalate, healthy fats"}
+    ],
+    yellow:[
+      {food:"Macadamia nut oil",note:"Good but expensive"},
+      {food:"Sesame oil (small amt)",note:"Moderate use only"}
+    ],
+    red:[
+      {food:"Canola/rapeseed oil",note:"Highly processed, inflammatory"},
+      {food:"Soybean oil",note:"High omega-6, inflammatory"},
+      {food:"Corn oil",note:"Very high omega-6"},
+      {food:"Sunflower oil",note:"High omega-6"},
+      {food:"Margarine",note:"Trans fats, inflammatory"},
+      {food:"Vegetable oil blends",note:"Oxidized seed oils"}
+    ]
+  },
+  {
+    name:"Starches", icon:"🍚",
+    green:[
+      {food:"White rice",note:"Low oxalate, well-tolerated"},
+      {food:"New potatoes (peeled)",note:"Half oxalate of Russet"},
+      {food:"Turnips",note:"Great potato swap"},
+      {food:"Parsnips",note:"Low oxalate root"},
+      {food:"Plantains",note:"Low oxalate, resistant starch"}
+    ],
+    yellow:[
+      {food:"Russet potato (peeled)",note:"Peel removes most oxalate"},
+      {food:"Sweet potatoes (occasional)",note:"Boil & limit ½ cup"},
+      {food:"Oats",note:"Moderate oxalate + arginine"},
+      {food:"GF rice-flour bread",note:"Avoid tapioca-heavy brands"}
+    ],
+    red:[
+      {food:"Wheat/gluten grains",note:"Inflammatory for many + EBV"},
+      {food:"Corn (conventional)",note:"Often GMO, inflammatory"},
+      {food:"Buckwheat",note:"High oxalate"},
+      {food:"Amaranth",note:"Very high oxalate"}
+    ]
+  },
+  {
+    name:"Nuts & Seeds", icon:"🥜",
+    green:[
+      {food:"Macadamia nuts",note:"Lowest oxalate nut"},
+      {food:"Coconut (flakes/butter)",note:"Low oxalate, lauric acid"},
+      {food:"Flaxseed (ground)",note:"Omega-3, low oxalate"},
+      {food:"Hemp seeds",note:"Low oxalate, balanced omegas"}
+    ],
+    yellow:[
+      {food:"Pecans",note:"Moderate oxalate"},
+      {food:"Walnuts",note:"Good omega-3 but moderate ox"},
+      {food:"Pumpkin seeds",note:"Moderate, zinc-rich"},
+      {food:"Cashews (small amt)",note:"Moderate-high oxalate"}
+    ],
+    red:[
+      {food:"Almonds",note:"Very high oxalate"},
+      {food:"Peanuts",note:"High oxalate + HIGH arginine"},
+      {food:"Peanut butter",note:"Feeds EBV — high arginine"},
+      {food:"Almond milk",note:"Concentrated almond oxalate"},
+      {food:"Sesame seeds (large amt)",note:"High oxalate"},
+      {food:"Pine nuts",note:"High oxalate"}
+    ]
+  },
+  {
+    name:"Fruits", icon:"🫐",
+    green:[
+      {food:"Blueberries",note:"Low oxalate, antioxidant-rich"},
+      {food:"Blackberries",note:"Low oxalate"},
+      {food:"Lemons/limes",note:"Citrate helps clear oxalate"},
+      {food:"Apples",note:"Low oxalate, pectin for gut"},
+      {food:"Watermelon",note:"Very low oxalate"},
+      {food:"Cherries",note:"Anti-inflammatory compounds"},
+      {food:"Pears",note:"Low oxalate, gentle on gut"}
+    ],
+    yellow:[
+      {food:"Oranges",note:"Vitamin C but moderate oxalate"},
+      {food:"Grapes",note:"Resveratrol source, moderate"},
+      {food:"Bananas",note:"Moderate, high sugar"},
+      {food:"Strawberries",note:"Moderate oxalate"}
+    ],
+    red:[
+      {food:"Raspberries (large amt)",note:"High oxalate"},
+      {food:"Figs",note:"High oxalate"},
+      {food:"Star fruit",note:"Very high oxalate"},
+      {food:"Dried fruits (most)",note:"Concentrated oxalate + sugar"}
+    ]
+  },
+  {
+    name:"Drinks", icon:"☕",
+    green:[
+      {food:"Filtered water",note:"Hydration clears oxalates"},
+      {food:"Bone broth",note:"Anti-inflammatory, gut healing"},
+      {food:"Green tea (2-3 cups)",note:"Natural EGCG source"},
+      {food:"Chamomile tea",note:"Contains luteolin"},
+      {food:"Ginger tea",note:"Anti-inflammatory"},
+      {food:"Bulletproof coffee",note:"MCT + grass-fed butter"}
+    ],
+    yellow:[
+      {food:"Black coffee",note:"Low oxalate but watch mold"},
+      {food:"Coconut milk",note:"Good alt-milk choice"},
+      {food:"Coconut water",note:"Moderate, watch sugar"}
+    ],
+    red:[
+      {food:"Soda / diet soda",note:"Inflammatory, no benefit"},
+      {food:"Almond milk",note:"High oxalate — switch to coconut"},
+      {food:"Fruit juice",note:"Concentrated sugar, no fiber"},
+      {food:"Alcohol",note:"Liver burden, inflammatory"},
+      {food:"Hot chocolate/cacao",note:"Very high oxalate"},
+      {food:"Excessive black tea",note:"High oxalate"}
+    ]
+  },
+  {
+    name:"Snacks", icon:"🍿",
+    green:[
+      {food:"Coconut chips",note:"Low oxalate, satisfying crunch"},
+      {food:"Macadamia nuts",note:"Best nut for low-ox snacking"},
+      {food:"Beef/turkey jerky",note:"Zero oxalate, high lysine"},
+      {food:"Pork rinds",note:"Zero oxalate, high protein"},
+      {food:"Olives",note:"Low oxalate, healthy fat"},
+      {food:"Hard-boiled eggs",note:"Perfect portable snack"},
+      {food:"GF rice crackers",note:"Low oxalate base"}
+    ],
+    yellow:[
+      {food:"Boulder Canyon chips",note:"OK — check oil type"},
+      {food:"Siete cassava chips",note:"Moderate — check ingredients"},
+      {food:"Pecans (handful)",note:"Moderate oxalate"},
+      {food:"Dark chocolate (small)",note:"Moderate oxalate, high arginine"}
+    ],
+    red:[
+      {food:"Catalina Crunch",note:"Check — may contain almond flour"},
+      {food:"Mixed nuts",note:"Usually contains almonds/peanuts"},
+      {food:"Peanut butter snacks",note:"High oxalate + feeds EBV"},
+      {food:"Trail mix",note:"Nuts + dried fruit = double hit"},
+      {food:"Granola bars",note:"Usually oat/nut/seed heavy"}
+    ]
+  },
+  {
+    name:"Spices", icon:"🧂",
+    green:[
+      {food:"Turmeric + black pepper",note:"NF-κB inhibitor"},
+      {food:"Ginger",note:"COX-2 inhibitor"},
+      {food:"Garlic",note:"Antiviral, antimicrobial"},
+      {food:"Oregano",note:"Antiviral, anti-inflammatory"},
+      {food:"Rosemary",note:"Antioxidant, low oxalate"},
+      {food:"Thyme",note:"Contains luteolin"},
+      {food:"Himalayan pink salt",note:"Mineral-rich"},
+      {food:"Apple cider vinegar",note:"Digestive support"},
+      {food:"Parsley",note:"Luteolin source"}
+    ],
+    yellow:[
+      {food:"Black pepper (large amt)",note:"Moderate oxalate in quantity"},
+      {food:"Cinnamon (cassia)",note:"Coumarin concern in excess"},
+      {food:"Honey (small amt)",note:"Better than sugar but still sugar"}
+    ],
+    red:[
+      {food:"Sugar / HFCS",note:"Drives inflammation directly"},
+      {food:"Artificial sweeteners",note:"Gut microbiome disruption"},
+      {food:"MSG",note:"Excitotoxin, inflammatory"},
+      {food:"Seed oil dressings",note:"Hidden inflammatory oils"}
+    ]
+  }
+];
+
+const supplements = [
+  {name:"L-Lysine",dose:"1,000mg/day",purpose:"EBV — blocks viral arginine"},
+  {name:"Monolaurin",dose:"600-1,200mg/day",purpose:"EBV — antiviral fatty acid"},
+  {name:"Luteolin",dose:"200mg/day",purpose:"NLRP3 inflammasome inhibitor"},
+  {name:"Boswellia",dose:"500mg 2×/day",purpose:"5-LOX inhibitor, joints"},
+  {name:"EGCG",dose:"300-400mg/day",purpose:"NF-κB inhibitor (stay <600mg)"},
+  {name:"Holy Basil",dose:"300-500mg/day",purpose:"Adaptogen, anti-inflammatory"},
+  {name:"resB (Resbiotic)",dose:"2 caps/day",purpose:"MMP9/NLRP3 pathway"},
+  {name:"Baby Aspirin",dose:"81mg 2×/week",purpose:"COX inhibitor"},
+  {name:"Vitamin D",dose:"current dose",purpose:"Immune modulation (already taking)"},
+  {name:"Vitamin C",dose:"current dose",purpose:"Antioxidant (already taking)"},
+  {name:"Quercetin",dose:"current dose",purpose:"NLRP3 + antiviral (already taking)"},
+  {name:"Cat's Claw",dose:"current dose",purpose:"Antiviral for EBV (already taking)"},
+  {name:"Zinc",dose:"current dose",purpose:"Immune support (already taking)"},
+  {name:"K2 + B12",dose:"current dose",purpose:"Cofactors (already taking)"}
+];
+
+const tips = [
+  "Boil & peel potatoes/sweet potatoes to reduce oxalates",
+  "Pair high-calcium foods with moderate-oxalate foods",
+  "Reduce oxalates gradually — don't go cold turkey",
+  "Eat fat with fat-soluble supplements (boswellia, EGCG)",
+  "Avoid high-arginine foods during EBV flares (nuts, chocolate, oats)",
+  "Get hsCRP + liver enzymes tested before starting supplements",
+  "Stay hydrated — water flushes oxalate crystals",
+  "Swap peanut butter for macadamia or coconut butter",
+  "Swap almond milk for coconut or macadamia milk"
+];
+
+let activeCat = 0;
+let activeZone = 'all';
+let searchQuery = '';
+
+function render() {
+  // Categories
+  const catScroll = document.getElementById('catScroll');
+  catScroll.innerHTML = categories.map((c,i) =>
+    `<button class="cat-btn ${i===activeCat?'active':''}" onclick="setCat(${i})">${c.icon} ${c.name}</button>`
+  ).join('');
+
+  // Zone filter
+  const zf = document.getElementById('zoneFilter');
+  const zones = [
+    {key:'all',label:'All',cls:'all'},
+    {key:'green',label:'✓ Eat',cls:'green'},
+    {key:'yellow',label:'~ Mod',cls:'yellow'},
+    {key:'red',label:'✕ Avoid',cls:'red'}
+  ];
+  zf.innerHTML = zones.map(z =>
+    `<button class="zone-btn ${activeZone===z.key?'active-'+z.cls:''}" onclick="setZone('${z.key}')">${z.label}</button>`
+  ).join('');
+
+  // Food content
+  const cat = categories[activeCat];
+  const fc = document.getElementById('foodContent');
+  let html = '';
+
+  ['green','yellow','red'].forEach(zone => {
+    if(activeZone!=='all' && activeZone!==zone) return;
+    let items = cat[zone] || [];
+    if(searchQuery) {
+      items = items.filter(it =>
+        it.food.toLowerCase().includes(searchQuery) ||
+        it.note.toLowerCase().includes(searchQuery)
+      );
+    }
+    if(!items.length) return;
+
+    const labels = {green:'EAT FREELY',yellow:'MODERATE',red:'AVOID'};
+    const subs = {green:'Anti-inflammatory & low oxalate',yellow:'Limit portions or frequency',red:'Inflammatory or high oxalate'};
+
+    html += `<div class="zone-card ${zone}">
+      <div class="zone-header">
+        <div><span class="zone-label">${labels[zone]}</span><span class="zone-sublabel">${subs[zone]}</span></div>
+        <span class="zone-count">${items.length}</span>
+      </div>
+      <div>`;
+    items.forEach(it => {
+      html += `<div class="food-item">
+        <div class="food-name">${it.food}</div>
+        <div class="food-note">${it.note}</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  // Global search across all categories
+  if(searchQuery && !html) {
+    html = '';
+    categories.forEach((c,ci) => {
+      ['green','yellow','red'].forEach(zone => {
+        const items = (c[zone]||[]).filter(it =>
+          it.food.toLowerCase().includes(searchQuery) ||
+          it.note.toLowerCase().includes(searchQuery)
+        );
+        if(!items.length) return;
+        const labels = {green:'EAT FREELY',yellow:'MODERATE',red:'AVOID'};
+        html += `<div class="zone-card ${zone}">
+          <div class="zone-header">
+            <div><span class="zone-label">${c.icon} ${c.name} — ${labels[zone]}</span></div>
+            <span class="zone-count">${items.length}</span>
+          </div><div>`;
+        items.forEach(it => {
+          html += `<div class="food-item"><div class="food-name">${it.food}</div><div class="food-note">${it.note}</div></div>`;
+        });
+        html += `</div></div>`;
+      });
+    });
+  }
+
+  fc.innerHTML = html;
+
+  // Personal flags visibility
+  document.getElementById('personalFlags').classList.toggle('hidden', !!searchQuery);
+
+  // Supplements
+  document.getElementById('suppList').innerHTML = supplements.map(s =>
+    `<div class="supp-item">
+      <div><div class="supp-name">${s.name}</div><div class="supp-purpose">${s.purpose}</div></div>
+      <div class="supp-dose">${s.dose}</div>
+    </div>`
+  ).join('');
+
+  // Tips
+  document.getElementById('tipsList').innerHTML = tips.map(t =>
+    `<div class="tip-item"><span class="tip-bullet">•</span>${t}</div>`
+  ).join('');
+}
+
+function setCat(i) { activeCat=i; searchQuery=''; document.getElementById('searchInput').value=''; render(); }
+function setZone(z) { activeZone=z; render(); }
+
+document.getElementById('searchInput').addEventListener('input', function(e) {
+  searchQuery = e.target.value.toLowerCase().trim();
+  if(searchQuery) {
+    // Search all categories
+    activeCat = 0;
+    activeZone = 'all';
+  }
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
