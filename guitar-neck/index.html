@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guitar Fretboard Notes</title>
+<style>
+  :root {
+    --bg: #f5f2ec;
+    --text: #2b2b2b;
+    --muted: #7a7a7a;
+    --neck: #d9b98c;
+    --neck-edge: #b8945f;
+    --nut: #efe9dc;
+    --fret-wire: #9a9a9a;
+    --string: #666;
+    --inlay: rgba(0, 0, 0, 0.18);
+    --note-bg: #ffffff;
+    --note-border: #c9c9c9;
+    --note-text: #333;
+    --note-hover: #e8e2d4;
+    --highlight-bg: #d97706;
+    --highlight-border: #b45309;
+    --highlight-text: #fff;
+    --selected-ring: #7c2d12;
+    --button-bg: #ffffff;
+    --button-border: #bbb;
+    --button-text: #333;
+    --button-hover: #eee;
+    --open-label: #444;
+  }
+
+  [data-theme="dark"] {
+    --bg: #1c1b19;
+    --text: #e8e5df;
+    --muted: #9a968e;
+    --neck: #4a3826;
+    --neck-edge: #2e2117;
+    --nut: #d8d2c4;
+    --fret-wire: #8a8a8a;
+    --string: #b0b0b0;
+    --inlay: rgba(255, 255, 255, 0.22);
+    --note-bg: #2b2a27;
+    --note-border: #55524c;
+    --note-text: #e8e5df;
+    --note-hover: #3d3b36;
+    --highlight-bg: #f59e0b;
+    --highlight-border: #fbbf24;
+    --highlight-text: #1c1b19;
+    --selected-ring: #fde68a;
+    --button-bg: #2b2a27;
+    --button-border: #55524c;
+    --button-text: #e8e5df;
+    --button-hover: #3d3b36;
+    --open-label: #d5d1c9;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 24px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: background 0.25s, color 0.25s;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+    margin: 0 0 4px;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    margin: 0 0 16px;
+    font-size: 0.9rem;
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .toolbar button {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    border: 1px solid var(--button-border);
+    background: var(--button-bg);
+    color: var(--button-text);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .toolbar button:hover { background: var(--button-hover); }
+
+  #status {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  #status strong { color: var(--highlight-bg); font-size: 1.05rem; }
+
+  .board-scroll {
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .board {
+    display: grid;
+    /* col 1 = open-string labels, col 2 = nut, cols 3+ = frets */
+    grid-template-columns: 48px 34px repeat(var(--fret-count), minmax(58px, 1fr));
+    min-width: 1000px;
+    user-select: none;
+  }
+
+  /* ---- fretboard rows ---- */
+  .cell {
+    position: relative;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cell.fretted {
+    background: var(--neck);
+    border-right: 3px solid var(--fret-wire);
+    box-shadow: inset 0 0 24px rgba(0,0,0,0.08);
+  }
+
+  .cell.nut {
+    background: var(--nut);
+    border-right: 6px solid var(--neck-edge);
+  }
+
+  /* string line running through each cell */
+  .cell.fretted::before,
+  .cell.nut::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: var(--string-thickness, 2px);
+    transform: translateY(-50%);
+    background: var(--string);
+    pointer-events: none;
+  }
+
+  /* top/bottom edge of the neck */
+  .row-first .cell.fretted, .row-first .cell.nut { border-top: 3px solid var(--neck-edge); }
+  .row-last  .cell.fretted, .row-last  .cell.nut { border-bottom: 3px solid var(--neck-edge); }
+
+  /* ---- inlay dots (drawn on middle rows) ---- */
+  .inlay {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--inlay);
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .inlay.top    { top: -8px; }
+  .inlay.bottom { bottom: -8px; }
+  .inlay.center { top: 50%; transform: translate(-50%, -50%); }
+
+  /* ---- note buttons ---- */
+  .note {
+    position: relative;
+    z-index: 1;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--note-border);
+    background: var(--note-bg);
+    color: var(--note-text);
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.15s;
+  }
+
+  .note:hover { background: var(--note-hover); transform: scale(1.12); }
+
+  .note.highlight {
+    background: var(--highlight-bg);
+    border-color: var(--highlight-border);
+    color: var(--highlight-text);
+    transform: scale(1.08);
+  }
+
+  .note.highlight:hover { transform: scale(1.15); }
+
+  /* the exact note the user clicked gets an extra ring */
+  .note.origin { box-shadow: 0 0 0 3px var(--selected-ring); }
+
+  /* ---- open string labels ---- */
+  .open-label {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--open-label);
+    padding-right: 6px;
+    justify-content: flex-end;
+  }
+  .open-label .note { width: 34px; height: 34px; font-size: 0.85rem; }
+
+  /* ---- fret numbers row ---- */
+  .fretnum {
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .fretnum.marked { color: var(--highlight-bg); }
+</style>
+</head>
+<body>
+
+<h1>Guitar Fretboard</h1>
+<p class="subtitle">Click any note to highlight it everywhere on the neck. Standard tuning, 15 frets.</p>
+
+<div class="toolbar">
+  <button id="clearBtn">Clear selection</button>
+  <button id="themeBtn">🌙 Dark mode</button>
+  <span id="status">No note selected</span>
+</div>
+
+<div class="board-scroll">
+  <div class="board" id="board"></div>
+</div>
+
+<script>
+(function () {
+  const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+  const FRET_COUNT = 15;
+  // Strings top-to-bottom as you look at a fretboard chart: high e first.
+  const STRINGS = [
+    { open: "E", label: "e", thickness: 1 },
+    { open: "B", label: "B", thickness: 1.4 },
+    { open: "G", label: "G", thickness: 1.8 },
+    { open: "D", label: "D", thickness: 2.2 },
+    { open: "A", label: "A", thickness: 2.6 },
+    { open: "E", label: "E", thickness: 3 },
+  ];
+  const SINGLE_DOT_FRETS = [3, 5, 7, 9, 15];
+  const DOUBLE_DOT_FRETS = [12];
+
+  const board = document.getElementById("board");
+  board.style.setProperty("--fret-count", FRET_COUNT);
+
+  function noteAt(openNote, fret) {
+    return NOTES[(NOTES.indexOf(openNote) + fret) % 12];
+  }
+
+  // Build string rows
+  STRINGS.forEach((str, si) => {
+    const rowClass = si === 0 ? "row-first" : si === STRINGS.length - 1 ? "row-last" : "";
+
+    // Open-string label + clickable open note
+    const label = document.createElement("div");
+    label.className = "cell open-label" + (rowClass ? " " + rowClass : "");
+    label.appendChild(makeNote(str.open, si, 0));
+    board.appendChild(label);
+
+    // Nut cell (fret 0 position on the neck, no note button — open note is in the label)
+    const nut = document.createElement("div");
+    nut.className = "cell nut" + (rowClass ? " " + rowClass : "");
+    nut.style.setProperty("--string-thickness", str.thickness + "px");
+    board.appendChild(nut);
+
+    // Fretted cells
+    for (let f = 1; f <= FRET_COUNT; f++) {
+      const cell = document.createElement("div");
+      cell.className = "cell fretted" + (rowClass ? " " + rowClass : "");
+      cell.style.setProperty("--string-thickness", str.thickness + "px");
+
+      // Inlay dots: single dots straddle strings 3/4 gap (draw on row index 2, bottom edge),
+      // double dots on rows 1 and 4.
+      if (SINGLE_DOT_FRETS.includes(f) && si === 2) {
+        cell.appendChild(makeInlay("bottom"));
+      }
+      if (DOUBLE_DOT_FRETS.includes(f) && (si === 1 || si === 4)) {
+        cell.appendChild(makeInlay(si === 1 ? "bottom" : "top"));
+      }
+
+      cell.appendChild(makeNote(noteAt(str.open, f), si, f));
+      board.appendChild(cell);
+    }
+  });
+
+  // Fret number row
+  const spacer = document.createElement("div");
+  board.appendChild(spacer);
+  const zero = document.createElement("div");
+  zero.className = "fretnum";
+  zero.textContent = "0";
+  board.appendChild(zero);
+  for (let f = 1; f <= FRET_COUNT; f++) {
+    const n = document.createElement("div");
+    const marked = SINGLE_DOT_FRETS.includes(f) || DOUBLE_DOT_FRETS.includes(f);
+    n.className = "fretnum" + (marked ? " marked" : "");
+    n.textContent = DOUBLE_DOT_FRETS.includes(f) ? f + " ••" : marked ? f + " •" : f;
+    board.appendChild(n);
+  }
+
+  function makeInlay(pos) {
+    const d = document.createElement("div");
+    d.className = "inlay " + pos;
+    return d;
+  }
+
+  function makeNote(name, stringIndex, fret) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "note";
+    b.textContent = name;
+    b.dataset.note = name;
+    b.title = name + " — string " + STRINGS[stringIndex].label + ", fret " + fret;
+    b.addEventListener("click", () => selectNote(name, b));
+    return b;
+  }
+
+  // ---- selection ----
+  const status = document.getElementById("status");
+  let selected = null;
+
+  function selectNote(name, originEl) {
+    selected = name;
+    document.querySelectorAll(".note").forEach(el => {
+      el.classList.toggle("highlight", el.dataset.note === name);
+      el.classList.remove("origin");
+    });
+    if (originEl) originEl.classList.add("origin");
+    status.innerHTML = "Selected: <strong>" + name + "</strong>";
+  }
+
+  function clearSelection() {
+    selected = null;
+    document.querySelectorAll(".note").forEach(el => el.classList.remove("highlight", "origin"));
+    status.textContent = "No note selected";
+  }
+
+  document.getElementById("clearBtn").addEventListener("click", clearSelection);
+
+  // ---- theme ----
+  const themeBtn = document.getElementById("themeBtn");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  let saved = null;
+  try { saved = localStorage.getItem("fretboard-theme"); } catch (e) {}
+  applyTheme(saved || (prefersDark ? "dark" : "light"));
+
+  themeBtn.addEventListener("click", () => {
+    const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    applyTheme(next);
+    try { localStorage.setItem("fretboard-theme", next); } catch (e) {}
+  });
+
+  function applyTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    themeBtn.textContent = theme === "dark" ? "☀️ Light mode" : "🌙 Dark mode";
+  }
+})();
+</script>
+
+</body>
+</html>
