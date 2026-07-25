@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Low-Oxalate Recipes</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141416;
+    --border: rgba(255,255,255,0.06);
+    --text: #e4e4e7;
+    --text-dim: #a1a1aa;
+    --text-muted: #71717a;
+    --accent: #818cf8;
+    --accent-bg: rgba(99,102,241,0.1);
+    --warm: #f59e0b;
+    --warm-bg: rgba(245,158,11,0.08);
+    --green: #22c55e;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height:100vh; -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  .header {
+    background: linear-gradient(135deg, #0f172a, #1e1b4b 40%, #172554);
+    border-bottom: 1px solid rgba(99,102,241,0.2);
+    padding: 24px 16px 20px; text-align: center;
+  }
+  .header-sub { font-size:11px; letter-spacing:3px; color:var(--accent); font-weight:600; text-transform:uppercase; margin-bottom:6px; }
+  .header h1 { font-size:22px; font-weight:800; color:#c7d2fe; margin:0 0 4px; }
+  .header p { font-size:12px; color:#94a3b8; }
+  .recipe-nav {
+    display:flex; overflow-x:auto; gap:8px; padding:12px 16px;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;
+    background:rgba(0,0,0,0.3); border-bottom:1px solid var(--border);
+  }
+  .recipe-nav::-webkit-scrollbar { display:none; }
+  .recipe-btn {
+    flex-shrink:0; padding:8px 14px; border-radius:20px;
+    border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04);
+    color:var(--text-dim); font-size:12px; font-weight:400; cursor:pointer;
+    white-space:nowrap; transition:all 0.2s; font-family:inherit;
+  }
+  .recipe-btn.active {
+    border-color:rgba(129,140,248,0.5);
+    background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(79,70,229,0.15));
+    color:#c7d2fe; font-weight:600;
+  }
+  .recipe { display:none; padding:16px; }
+  .recipe.active { display:block; }
+  .recipe-title { font-size:20px; font-weight:800; color:#c7d2fe; margin-bottom:4px; }
+  .recipe-desc { font-size:13px; color:var(--text-dim); margin-bottom:16px; line-height:1.5; }
+  .recipe-meta { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+  .meta-item {
+    font-size:11px; color:var(--accent); background:var(--accent-bg);
+    padding:4px 10px; border-radius:6px; font-weight:600;
+  }
+  .card {
+    border-radius:12px; overflow:hidden; margin-bottom:14px;
+    border:1px solid rgba(99,102,241,0.2);
+    background:linear-gradient(135deg,rgba(30,27,75,0.4),rgba(15,23,42,0.6));
+  }
+  .card-header {
+    padding:10px 14px; font-size:12px; font-weight:800;
+    letter-spacing:1.5px; color:var(--accent);
+    border-bottom:1px solid rgba(99,102,241,0.15);
+    background:rgba(99,102,241,0.08);
+  }
+  .card-body { padding:6px 0; }
+  .ingredient {
+    padding:8px 14px; display:flex; justify-content:space-between;
+    align-items:center; gap:10px; font-size:13px; color:#d4d4d8;
+  }
+  .ingredient:not(:last-child) { border-bottom:1px solid rgba(255,255,255,0.04); }
+  .ingredient-amount {
+    font-size:12px; font-weight:600; color:var(--accent);
+    background:var(--accent-bg); padding:2px 8px; border-radius:4px;
+    flex-shrink:0; text-align:right;
+  }
+  .step {
+    padding:12px 14px; font-size:13px; color:#d4d4d8; line-height:1.6;
+  }
+  .step:not(:last-child) { border-bottom:1px solid rgba(255,255,255,0.04); }
+  .step-num {
+    display:inline-block; width:22px; height:22px; line-height:22px;
+    text-align:center; border-radius:50%; background:var(--accent-bg);
+    color:var(--accent); font-size:11px; font-weight:700; margin-right:8px;
+  }
+  .step-title { font-weight:700; color:#c7d2fe; margin-bottom:4px; }
+  .step-time {
+    display:inline-block; font-size:11px; color:var(--warm);
+    background:var(--warm-bg); padding:2px 6px; border-radius:4px;
+    margin-left:6px;
+  }
+  .notes-card {
+    border:1px solid rgba(234,179,8,0.2); background:rgba(234,179,8,0.04);
+    border-radius:12px; padding:14px; margin-bottom:14px;
+  }
+  .notes-title { font-size:12px; font-weight:800; color:var(--warm); letter-spacing:1px; margin-bottom:8px; }
+  .notes-text { font-size:12px; color:#d4d4d8; line-height:1.5; }
+  .notes-text p { margin-bottom:8px; }
+  .notes-text p:last-child { margin-bottom:0; }
+  .footer {
+    padding:20px 16px; text-align:center; font-size:11px; color:#52525b;
+    line-height:1.5; border-top:1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-sub">Low-Oxalate Kitchen</div>
+  <h1>Recipes</h1>
+  <p>GF · No Tapioca · No Potato Starch · EBV-Friendly</p>
+</div>
+
+<div class="recipe-nav" id="recipeNav"></div>
+<div id="recipesContainer"></div>
+
+<div class="footer">
+  All recipes are gluten-free, low-oxalate, and free of tapioca, potato starch, almond flour, and gums.<br>
+  Designed for anti-inflammation and EBV protocols.
+</div>
+
+<script>
+const recipes = [
+  {
+    id:"rice-bread-1", navLabel:"Rice Bread",
+    title:"Classic Rice Bread",
+    desc:"The original — a savory, versatile loaf perfect for sandwiches and toast. Uses gelatin for binding and egg whites for rise. No yeast, no gums, no starch. From Eat Beautiful.",
+    meta:["60-70 min bake","12 slices","Freezes great"],
+    ingredients:[
+      ["2 cups","White rice flour"],
+      ["1½ cups","Warm water (not hot)"],
+      ["4","Egg whites"],
+      ["¼ cup","Psyllium husk powder (4 tbsp)"],
+      ["¼ cup","Butter, melted and cooled (half a stick)"],
+      ["3 tbsp","Maple sugar or coconut sugar"],
+      ["2 tbsp","Unflavored gelatin (Knox or Great Lakes)"],
+      ["1 tsp","Baking soda"],
+      ["½ tsp","Sea salt"]
+    ],
+    steps:[
+      {title:"Prep",text:"Preheat oven to 350°F. Line an 8.5×4.5 inch loaf pan with a strip of parchment paper for easy removal."},
+      {title:"Mix dry",text:"In a large bowl, whisk together rice flour, psyllium husk powder, gelatin, baking soda, sugar, and salt."},
+      {title:"Add wet",text:"Add warm water, melted butter (cooled slightly), and all 4 egg whites. Mix with a fork until a thick dough forms. It will be wetter than regular bread dough — that's normal."},
+      {title:"Shape",text:"Use a rubber spatula to roll the dough in the bowl until it forms a smooth loaf shape. Transfer to the prepared pan. Wet your fingers lightly and shape so it's taller in the center."},
+      {title:"Bake",text:"Bake at 350°F for 60-70 minutes until the top is golden and firm. A toothpick in the center should come out clean.",time:"60-70 min"},
+      {title:"Cool",text:"Let cool in the pan for 10 minutes, then lift out using the parchment paper. Cool on a wire rack for at least 20 minutes before slicing with a serrated knife.",time:"20 min"}
+    ],
+    notes:[
+      "Use butter (not coconut oil) and maple sugar for the lowest oxalate version.",
+      "SOURDOUGH VARIATION: Replace ¼ cup of the water with sauerkraut juice for a mild sourdough flavor and extra gut benefit.",
+      "STORAGE: Leave on counter up to 24 hours (cut side down). Do NOT refrigerate — the gelatin changes texture when chilled. Slice and freeze for up to 3 months.",
+      "TOAST TIP: Slice the whole loaf, freeze slices flat, then toast straight from frozen."
+    ]
+  },
+  {
+    id:"airy-bread", navLabel:"Airy Bread",
+    title:"Airy Rice Bread (Whipped Egg White Method)",
+    desc:"Lighter and spongier than the classic version — uses whipped egg whites for an airy, cake-like texture. No gelatin needed. Get it in the oven immediately after folding in the whites for best results.",
+    meta:["55-65 min bake","12 slices","Light & spongy"],
+    ingredients:[
+      ["2 cups","White rice flour"],
+      ["1¼ cups","Warm water"],
+      ["3","Eggs (separated — whites and yolks apart)"],
+      ["2 tbsp","Psyllium husk (whole or powder)"],
+      ["3 tbsp","Butter, melted and cooled"],
+      ["1 tbsp","Maple sugar or honey"],
+      ["1½ tsp","Baking powder (GF)"],
+      ["½ tsp","Sea salt"]
+    ],
+    steps:[
+      {title:"Prep",text:"Preheat oven to 350°F. Line a loaf pan with parchment paper."},
+      {title:"Make psyllium gel",text:"Whisk psyllium husk into the warm water in a bowl. Set aside 2 minutes — it'll turn into a gel.",time:"2 min"},
+      {title:"Mix dry",text:"In a large bowl, mix rice flour, baking powder, salt, and sugar."},
+      {title:"Combine",text:"Add the psyllium gel, egg yolks, and melted butter to the dry ingredients. Stir until combined."},
+      {title:"Whip whites",text:"In a CLEAN bowl (no grease or yolk), whip the 3 egg whites with an electric mixer until stiff peaks form. This is what makes the bread light and airy."},
+      {title:"Fold",text:"Gently fold the whipped whites into the dough — don't overmix, you want to keep the air bubbles. Use a gentle scooping and turning motion."},
+      {title:"Bake IMMEDIATELY",text:"Pour into loaf pan. Get it in the oven right away — do not let it sit. Bake 55-65 minutes until golden and a toothpick comes out clean.",time:"55-65 min"},
+      {title:"Cool",text:"Remove from pan immediately. Cool on a wire rack 20 minutes before slicing.",time:"20 min"}
+    ],
+    notes:[
+      "CRITICAL: Keep egg whites completely clean — any yolk or fat and they won't whip. Do the whites first in a clean bowl, then handle the yolks.",
+      "CRITICAL: Get the dough in the oven IMMEDIATELY after folding in whites. They deflate quickly and you lose all the airiness. Don't let it sit on the counter.",
+      "STORAGE: Slice and freeze. Toast straight from frozen.",
+      "This bread has a more cake-like, spongy texture compared to the classic version."
+    ]
+  },
+  {
+    id:"banana-bread", navLabel:"Banana Bread",
+    title:"Low-Oxalate Banana Bread",
+    desc:"Sweet, moist banana bread with optional macadamia nuts. Amazing toasted with butter. Perfect as an after-dinner treat. Updated with extra moisture tips.",
+    meta:["45-50 min bake","12 slices","After-dinner sweet"],
+    ingredients:[
+      ["4","Ripe bananas, mashed (brown spots = sweeter)"],
+      ["2 cups","White rice flour"],
+      ["3","Eggs"],
+      ["¼ cup","Butter, melted and cooled (half a stick)"],
+      ["2 tbsp","Coconut cream or coconut yogurt"],
+      ["3 tbsp","Honey or maple syrup"],
+      ["2 tbsp","Psyllium husk powder"],
+      ["1 tsp","Baking soda"],
+      ["1 tsp","Vanilla extract"],
+      ["½ tsp","Cinnamon"],
+      ["½ tsp","Sea salt"],
+      ["½ cup","Chopped macadamia nuts (optional)"]
+    ],
+    steps:[
+      {title:"Prep",text:"Preheat oven to 350°F. Line an 8.5×4.5 inch loaf pan with parchment paper."},
+      {title:"Mash bananas",text:"In a large bowl, mash the 4 ripe bananas with a fork until mostly smooth. A few small chunks are fine."},
+      {title:"Mix wet",text:"Add eggs, melted butter, coconut cream, honey, and vanilla to the mashed bananas. Mix well with a fork."},
+      {title:"Mix dry",text:"In a separate bowl, whisk together rice flour, psyllium husk powder, baking soda, cinnamon, and salt."},
+      {title:"Combine",text:"Pour the dry ingredients into the wet ingredients and stir until just combined. Don't overmix. Fold in macadamia nuts if using."},
+      {title:"Bake",text:"Pour batter into the prepared loaf pan. Bake at 350°F for 45-50 minutes. Check with a toothpick — pull it out when it comes out with just a few moist crumbs, not wet batter. Cover top with foil for last 15 minutes if browning too fast.",time:"45-50 min"},
+      {title:"Cool",text:"Let cool in the pan for 10 minutes, then lift out using parchment paper. Cool on a wire rack for at least 15 minutes before slicing.",time:"15 min"}
+    ],
+    notes:[
+      "MOISTURE TIPS: The 4th banana and coconut cream make this noticeably moister than 3-banana version. Pull at 45-50 min, not 60.",
+      "Use the ripest bananas you can find — freeze overripe bananas so you always have them ready.",
+      "Do NOT use almond flour or walnuts — both are high oxalate.",
+      "STORAGE: Keeps 2-3 days on counter wrapped in a towel. Slice and freeze for up to 3 months. Toast frozen slices straight from the freezer.",
+      "Great as after-dinner sweet treat with a little butter on top."
+    ]
+  },
+  {
+    id:"focaccia", navLabel:"Focaccia",
+    title:"Rice Flour Focaccia with Rosemary",
+    desc:"Crispy outside, pillowy inside. Topped with olive oil, rosemary, and flaky salt. Perfect alongside soup, stew, or dipped in olive oil and balsamic.",
+    meta:["25-30 min bake","1 hr rise","9×9 pan"],
+    ingredients:[
+      ["2 cups","White rice flour"],
+      ["1¼ cups","Warm water (105-110°F)"],
+      ["2¼ tsp","Instant yeast (1 packet)"],
+      ["2 tbsp","Psyllium husk powder"],
+      ["1 tbsp","Honey or maple sugar"],
+      ["1 tsp","Sea salt"],
+      ["1 tsp","Baking powder (GF)"],
+      ["4 tbsp","Extra virgin olive oil (divided)"],
+      ["","Fresh rosemary sprigs"],
+      ["","Flaky sea salt for topping"]
+    ],
+    steps:[
+      {title:"Activate yeast",text:"In a small bowl, mix warm water (105-110°F — warm but not hot) with yeast and honey. Stir gently and let sit 10 minutes until foamy.",time:"10 min"},
+      {title:"Mix dry",text:"In a large bowl, whisk together rice flour, psyllium husk powder, salt, and baking powder."},
+      {title:"Make dough",text:"Pour the yeast mixture and 2 tbsp olive oil into the dry ingredients. Stir until a thick, sticky dough forms. It will be wetter than regular bread dough."},
+      {title:"Rise",text:"Grease a 9×9 inch baking pan generously with 1 tbsp olive oil. Spread the dough into the pan with wet hands. Drizzle remaining 1 tbsp olive oil on top. Cover with a towel and let rise in a warm spot for 1 hour.",time:"1 hour"},
+      {title:"Dimple & top",text:"Preheat oven to 425°F. Dip your fingers in olive oil and press deep dimples all over the surface. Press fresh rosemary needles into the dough. Sprinkle with flaky sea salt."},
+      {title:"Bake",text:"Bake at 425°F for 25-30 minutes until golden brown and crispy on top.",time:"25-30 min"},
+      {title:"Cool",text:"Let cool in pan 5 minutes, then transfer to a wire rack. Best served warm or at room temperature.",time:"5 min"}
+    ],
+    notes:[
+      "This is the one recipe that uses yeast — it gives the focaccia its characteristic airy, bubbly texture.",
+      "Don't skimp on the olive oil — it's what makes focaccia special and it's anti-inflammatory.",
+      "TOPPING IDEAS: Cherry tomatoes and olives, garlic and herbs, caramelized onions, or just salt and rosemary (classic).",
+      "STORAGE: Wrap in foil on counter for 1 day. Reheat in oven or air fryer at 375°F for 5 minutes to re-crisp.",
+      "Great dipped in olive oil with balsamic vinegar, or sliced for sandwiches."
+    ]
+  },
+  {
+    id:"cinnamon-bread", navLabel:"Cinnamon",
+    title:"Cinnamon Swirl Bread",
+    desc:"Sweet, warming cinnamon bread with a honey-butter swirl running through it. Amazing toasted for breakfast or as an after-dinner treat.",
+    meta:["55-65 min bake","12 slices","Sweet treat"],
+    ingredients:[
+      ["2 cups","White rice flour"],
+      ["1¼ cups","Warm water"],
+      ["4","Egg whites"],
+      ["¼ cup","Butter, melted and cooled (half a stick)"],
+      ["¼ cup","Psyllium husk powder"],
+      ["3 tbsp","Honey (divided — 2 tbsp in dough, 1 tbsp in swirl)"],
+      ["2 tbsp","Unflavored gelatin"],
+      ["1 tsp","Baking soda"],
+      ["1 tsp","Vanilla extract"],
+      ["½ tsp","Sea salt"],
+      ["","— CINNAMON SWIRL —"],
+      ["2 tbsp","Butter, softened"],
+      ["1 tbsp","Honey"],
+      ["2 tsp","Cinnamon (Ceylon preferred)"],
+      ["1 pinch","Sea salt"]
+    ],
+    steps:[
+      {title:"Prep",text:"Preheat oven to 350°F. Line a loaf pan with parchment paper."},
+      {title:"Make swirl filling",text:"In a small bowl, mix softened butter, 1 tbsp honey, cinnamon, and a pinch of salt until smooth. Set aside."},
+      {title:"Mix dry",text:"In a large bowl, whisk together rice flour, psyllium husk powder, gelatin, baking soda, and salt."},
+      {title:"Add wet",text:"Add warm water, melted butter, 2 tbsp honey, vanilla, and egg whites. Mix until thick dough forms."},
+      {title:"Layer with swirl",text:"Spread half the dough into the loaf pan. Drop spoonfuls of the cinnamon filling across the surface. Use a knife to swirl it through the dough. Add the remaining dough on top and gently smooth."},
+      {title:"Bake",text:"Bake at 350°F for 55-65 minutes until golden and a toothpick comes out clean.",time:"55-65 min"},
+      {title:"Cool",text:"Cool in pan 10 minutes, then remove. Let cool 20 minutes before slicing.",time:"20 min"}
+    ],
+    notes:[
+      "The swirl won't be a perfect spiral like commercial bread — it'll be rustic ribbons of cinnamon butter throughout. That's even better.",
+      "Toast a slice and spread with butter for an incredible after-dinner sweet.",
+      "Use Ceylon cinnamon (true cinnamon) if you can find it — it's lower in coumarin than cassia cinnamon and safer for regular use.",
+      "STORAGE: Same as rice bread — counter 24 hours, then slice and freeze. Toast from frozen."
+    ]
+  },
+  {
+    id:"pancakes", navLabel:"Pancakes",
+    title:"Quick Protocol-Friendly Pancakes",
+    desc:"Simple, clean pancakes in minutes. No dairy, no oats, no tapioca, no sugar. Use whatever milk you have — macadamia, coconut cream, or coconut milk all work.",
+    meta:["15 min total","4-6 pancakes","Weekday easy"],
+    ingredients:[
+      ["1 cup","White rice flour"],
+      ["2","Eggs"],
+      ["½ cup","Coconut milk, macadamia milk, or coconut cream"],
+      ["1 tbsp","Butter, melted"],
+      ["1 tsp","Baking powder (GF)"],
+      ["1 pinch","Sea salt"],
+      ["1 drizzle","Honey"]
+    ],
+    steps:[
+      {title:"Mix",text:"Whisk all ingredients together in a bowl until smooth. If using coconut cream, add a splash of water to thin to pancake-batter consistency."},
+      {title:"Heat pan",text:"Heat a pan or griddle to medium. Add butter or coconut oil."},
+      {title:"Cook",text:"Pour ¼ cup batter per pancake. Cook until bubbles form on surface and edges set — about 2-3 minutes.",time:"2-3 min"},
+      {title:"Flip",text:"Flip and cook another 1-2 minutes until golden brown.",time:"1-2 min"},
+      {title:"Serve",text:"Top with blueberries, sliced banana, honey, and butter."}
+    ],
+    notes:[
+      "PREMIX TIP: Mix a big batch of the dry ingredients (rice flour, baking powder, salt) and keep in a jar. Then it's just as fast as a box mix — scoop dry, add eggs and milk, done.",
+      "Macadamia milk = thinner, lighter pancakes. Coconut cream = thicker, richer pancakes.",
+      "These also work as waffles if you have a waffle iron.",
+      "AFTER-DINNER OPTION: A couple small pancakes with blueberries and butter makes a great sweet treat."
+    ]
+  },
+  {
+    id:"pizza", navLabel:"Pizza",
+    title:"Rice Flour Pizza Crust",
+    desc:"Friday night pizza without the junk. Crispy, chewy crust topped however you like — no fake cheese needed. Way cleaner than frozen GF pizza.",
+    meta:["10+12 min bake","30 min rise","1 pizza"],
+    ingredients:[
+      ["1½ cups","White rice flour"],
+      ["1 tbsp","Psyllium husk powder"],
+      ["1 tsp","Instant yeast"],
+      ["1 tsp","Honey"],
+      ["½ tsp","Sea salt"],
+      ["¾ cup","Warm water (105-110°F)"],
+      ["2 tbsp","Extra virgin olive oil"]
+    ],
+    steps:[
+      {title:"Mix dough",text:"Combine warm water, yeast, and honey. Let sit 5 minutes until foamy. Mix rice flour, psyllium, and salt in a bowl. Add yeast mixture and olive oil. Stir into a dough.",time:"5 min"},
+      {title:"Rest",text:"Cover bowl with a towel and let rest 30 minutes in a warm spot.",time:"30 min"},
+      {title:"Preheat",text:"Preheat oven to 425°F with a baking sheet inside so it gets hot."},
+      {title:"Shape",text:"Press dough onto parchment paper into a thin round — wet your hands to prevent sticking. Aim for about 10-12 inches across. Thinner = crispier."},
+      {title:"Par-bake crust",text:"Slide parchment onto hot baking sheet. Bake crust alone for 10 minutes until just starting to firm up.",time:"10 min"},
+      {title:"Add toppings & finish",text:"Pull out, add your toppings, return to oven for another 10-12 minutes until edges are golden and toppings are cooked.",time:"10-12 min"}
+    ],
+    notes:[
+      "TOPPING IDEAS: Olive oil base + garlic + grilled chicken + mushrooms + bell peppers + red onion. Drizzle with olive oil and flaky salt after baking. Add arugula after it comes out of the oven.",
+      "No cheese needed — the olive oil, garlic, and toppings are plenty flavorful. But if you want something creamy, try a cashew-free pesto (basil + olive oil + garlic + salt blended).",
+      "For extra crispiness, bake directly on a pizza stone if you have one.",
+      "Replaces Daiya frozen pizza with something way cleaner — no tapioca cheese, no seed oils.",
+      "STORAGE: Par-baked crusts can be frozen. Thaw, add toppings, and bake."
+    ]
+  }
+];
+
+let activeRecipe = 0;
+
+function render() {
+  const nav = document.getElementById('recipeNav');
+  nav.innerHTML = recipes.map((r,i) =>
+    '<button class="recipe-btn '+(i===activeRecipe?'active':'')+'" onclick="setRecipe('+i+')">'+r.navLabel+'</button>'
+  ).join('');
+
+  const container = document.getElementById('recipesContainer');
+  container.innerHTML = recipes.map((r,i) => {
+    let html = '<div class="recipe '+(i===activeRecipe?'active':'')+'">';
+    html += '<div class="recipe-title">'+r.title+'</div>';
+    html += '<div class="recipe-desc">'+r.desc+'</div>';
+    html += '<div class="recipe-meta">';
+    r.meta.forEach(function(m){ html += '<span class="meta-item">'+m+'</span>'; });
+    html += '</div>';
+    html += '<div class="card"><div class="card-header">INGREDIENTS</div><div class="card-body">';
+    r.ingredients.forEach(function(ing){
+      var amt=ing[0], name=ing[1];
+      if(name.indexOf('—')===0){
+        html += '<div class="ingredient" style="justify-content:center;color:var(--warm);font-weight:700;font-size:12px;letter-spacing:1px;">'+name+'</div>';
+      } else {
+        html += '<div class="ingredient"><span>'+name+'</span>'+(amt?'<span class="ingredient-amount">'+amt+'</span>':'')+'</div>';
+      }
+    });
+    html += '</div></div>';
+    html += '<div class="card"><div class="card-header">STEPS</div><div class="card-body">';
+    r.steps.forEach(function(s,si){
+      html += '<div class="step"><div class="step-title"><span class="step-num">'+(si+1)+'</span>'+s.title;
+      if(s.time) html += '<span class="step-time">'+s.time+'</span>';
+      html += '</div><div style="margin-left:30px;">'+s.text+'</div></div>';
+    });
+    html += '</div></div>';
+    html += '<div class="notes-card"><div class="notes-title">NOTES</div><div class="notes-text">';
+    r.notes.forEach(function(n){ html += '<p>• '+n+'</p>'; });
+    html += '</div></div></div>';
+    return html;
+  }).join('');
+}
+
+function setRecipe(i) { activeRecipe=i; render(); window.scrollTo(0,0); }
+render();
+</script>
+</body>
+</html>
