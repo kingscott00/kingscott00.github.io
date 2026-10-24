@@ -33,8 +33,21 @@
   .header-sub { font-size:11px; letter-spacing:3px; color:var(--accent); font-weight:600; text-transform:uppercase; margin-bottom:6px; }
   .header h1 { font-size:22px; font-weight:800; color:#c7d2fe; margin:0 0 4px; }
   .header p { font-size:12px; color:#94a3b8; }
+  .cat-nav {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:6px;
+    padding:12px 16px 0; background:rgba(0,0,0,0.3);
+  }
+  .cat-btn {
+    padding:9px 4px; border-radius:10px;
+    border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03);
+    color:var(--text-muted); font-size:11px; font-weight:700; letter-spacing:0.5px;
+    text-transform:uppercase; cursor:pointer; font-family:inherit; transition:all 0.2s;
+  }
+  .cat-btn.active {
+    border-color:rgba(245,158,11,0.45); background:var(--warm-bg); color:var(--warm);
+  }
   .recipe-nav {
-    display:flex; overflow-x:auto; gap:8px; padding:12px 16px;
+    display:flex; overflow-x:auto; gap:8px; padding:10px 16px 12px;
     -webkit-overflow-scrolling:touch; scrollbar-width:none;
     background:rgba(0,0,0,0.3); border-bottom:1px solid var(--border);
   }
@@ -118,6 +131,7 @@
   <p>GF · No Tapioca · No Potato Starch · EBV-Friendly</p>
 </div>
 
+<div class="cat-nav" id="catNav"></div>
 <div class="recipe-nav" id="recipeNav"></div>
 <div id="recipesContainer"></div>
 
@@ -129,7 +143,7 @@
 <script>
 const recipes = [
   {
-    id:"rice-bread-1", navLabel:"Rice Bread",
+    id:"rice-bread-1", cat:"bread", navLabel:"Rice Bread",
     title:"Classic Rice Bread",
     desc:"The original — a savory, versatile loaf perfect for sandwiches and toast. Uses gelatin for binding and egg whites for rise. No yeast, no gums, no starch. From Eat Beautiful.",
     meta:["60-70 min bake","12 slices","Freezes great"],
@@ -160,7 +174,7 @@ const recipes = [
     ]
   },
   {
-    id:"airy-bread", navLabel:"Airy Bread",
+    id:"airy-bread", cat:"bread", navLabel:"Airy Bread",
     title:"Airy Rice Bread (Whipped Egg White Method)",
     desc:"Lighter and spongier than the classic version — uses whipped egg whites for an airy, cake-like texture. No gelatin needed. Get it in the oven immediately after folding in the whites for best results.",
     meta:["55-65 min bake","12 slices","Light & spongy"],
@@ -192,7 +206,7 @@ const recipes = [
     ]
   },
   {
-    id:"sandwich-loaf", navLabel:"Sandwich Loaf",
+    id:"sandwich-loaf", cat:"bread", navLabel:"Sandwich Loaf",
     title:"Soft Rice Flour Sandwich Loaf",
     desc:"A soft, yeasted sandwich bread. Sweet rice flour gives it a tender, springy crumb that holds together for sandwiches.",
     meta:["50-55 min bake","45-60 min rise","Soft crumb"],
@@ -222,7 +236,7 @@ const recipes = [
     ]
   },
   {
-    id:"banana-bread", navLabel:"Banana Bread",
+    id:"banana-bread", cat:"sweets", navLabel:"Banana Bread",
     title:"Low-Oxalate Banana Bread",
     desc:"Sweet, moist banana bread with optional macadamia nuts. Amazing toasted with butter. Perfect as an after-dinner treat. Updated with extra moisture tips.",
     meta:["45-50 min bake","12 slices","After-dinner sweet"],
@@ -258,7 +272,7 @@ const recipes = [
     ]
   },
   {
-    id:"focaccia", navLabel:"Focaccia",
+    id:"focaccia", cat:"bread", navLabel:"Focaccia",
     title:"Rice Flour Focaccia with Rosemary",
     desc:"Crispy outside, pillowy inside. Topped with olive oil, rosemary, and flaky salt. Perfect alongside soup, stew, or dipped in olive oil and balsamic.",
     meta:["25-30 min bake","1 hr rise","9×9 pan"],
@@ -292,7 +306,7 @@ const recipes = [
     ]
   },
   {
-    id:"cinnamon-bread", navLabel:"Cinnamon",
+    id:"cinnamon-bread", cat:"sweets", navLabel:"Cinnamon",
     title:"Cinnamon Swirl Bread",
     desc:"Sweet, warming cinnamon bread with a honey-butter swirl running through it. Amazing toasted for breakfast or as an after-dinner treat.",
     meta:["55-65 min bake","12 slices","Sweet treat"],
@@ -330,7 +344,7 @@ const recipes = [
     ]
   },
   {
-    id:"pancakes", navLabel:"Pancakes",
+    id:"pancakes", cat:"breakfast", navLabel:"Pancakes",
     title:"Quick Protocol-Friendly Pancakes",
     desc:"Simple, clean pancakes in minutes. No dairy, no oats, no tapioca, no sugar. Use whatever milk you have — macadamia, coconut cream, or coconut milk all work.",
     meta:["15 min total","4-6 pancakes","Weekday easy"],
@@ -358,7 +372,7 @@ const recipes = [
     ]
   },
   {
-    id:"pizza", navLabel:"Pizza",
+    id:"pizza", cat:"meals", navLabel:"Pizza",
     title:"Rice Flour Pizza Crust",
     desc:"Friday night pizza without the junk. Crispy, chewy crust topped however you like — no fake cheese needed. Way cleaner than frozen GF pizza.",
     meta:["10+12 min bake","30 min rise","1 pizza"],
@@ -386,14 +400,187 @@ const recipes = [
       "Replaces Daiya frozen pizza with something way cleaner — no tapioca cheese, no seed oils.",
       "STORAGE: Par-baked crusts can be frozen. Thaw, add toppings, and bake."
     ]
+  },
+  {
+    id:"macaroons", cat:"sweets", navLabel:"Macaroons",
+    title:"Coconut Macaroons",
+    desc:"",
+    meta:["Sweet snack","12 cookies","25 min"],
+    ingredients:[
+      ["2 cups","Unsweetened shredded coconut"],
+      ["2","Egg whites"],
+      ["3 tbsp","Honey or maple syrup"],
+      ["1 tsp","Vanilla"],
+      ["1 pinch","Salt"]
+    ],
+    steps:[
+      {title:"Prep",text:"Preheat oven to 325°F and line a sheet with parchment."},
+      {title:"Mix",text:"Mix everything into a sticky mixture."},
+      {title:"Scoop",text:"Scoop tablespoon-size mounds onto the sheet."},
+      {title:"Bake",text:"Bake 15–20 minutes until the edges are golden.",time:"15-20 min"},
+      {title:"Cool",text:"Cool before moving them. They firm up as they cool."}
+    ],
+    notes:[
+      "Keeps a week in an airtight container."
+    ]
+  },
+  {
+    id:"date-balls", cat:"sweets", navLabel:"Date Balls",
+    title:"Date Energy Balls",
+    desc:"",
+    meta:["Sweet snack","12 balls","10 min, no bake"],
+    ingredients:[
+      ["1 cup","Pitted dates (Medjool are softest)"],
+      ["½ cup","Macadamia nuts"],
+      ["½ cup","Unsweetened shredded coconut"],
+      ["1 tbsp","Coconut butter"],
+      ["1 pinch","Salt"]
+    ],
+    steps:[
+      {title:"Blend",text:"Blend everything in a food processor until it clumps together."},
+      {title:"Roll",text:"Roll into balls and roll them in extra coconut."},
+      {title:"Chill",text:"Refrigerate."}
+    ],
+    notes:[
+      "Keeps 2 weeks in the fridge.",
+      "If the mix is too dry, soak the dates in warm water for 10 minutes first."
+    ]
+  },
+  {
+    id:"plantain-pancakes", cat:"breakfast", navLabel:"Plantain Pancakes",
+    title:"Plantain Pancakes",
+    desc:"",
+    meta:["No rice flour","6 pancakes","15 min"],
+    ingredients:[
+      ["1","Very ripe plantain (mostly black)"],
+      ["2","Eggs"],
+      ["1 tbsp","Butter, melted"],
+      ["½ tsp","Baking powder"],
+      ["1 pinch","Salt and cinnamon"]
+    ],
+    steps:[
+      {title:"Blend",text:"Blend everything until smooth."},
+      {title:"Cook",text:"Cook small pancakes in butter on medium-low."},
+      {title:"Flip",text:"Flip when bubbles form."}
+    ],
+    notes:[
+      "These are the most like real pancakes of the no-flour options."
+    ]
+  },
+  {
+    id:"coconut-pancakes", cat:"breakfast", navLabel:"Coconut Flour Pancakes",
+    title:"Coconut Flour Pancakes",
+    desc:"",
+    meta:["No rice flour","6 pancakes","15 min"],
+    ingredients:[
+      ["3","Eggs"],
+      ["2 tbsp","Coconut flour"],
+      ["3 tbsp","Coconut milk or raw kefir"],
+      ["1 tbsp","Butter, melted"],
+      ["1 tsp","Honey"],
+      ["¼ tsp","Baking powder"],
+      ["1 pinch","Salt"]
+    ],
+    steps:[
+      {title:"Mix & rest",text:"Whisk everything and let it sit 3 minutes to thicken.",time:"3 min"},
+      {title:"Cook",text:"Cook small pancakes on medium-low and flip gently."}
+    ],
+    notes:[]
+  },
+  {
+    id:"garlic-noodles", cat:"meals", navLabel:"Garlic Noodles & Steak",
+    title:"Garlic Butter Rice Noodles with Steak",
+    desc:"",
+    meta:["Meal","2 servings","15 min"],
+    ingredients:[
+      ["8 oz","Rice noodles (pad thai style)"],
+      ["4 tbsp","Butter"],
+      ["4","Garlic cloves, minced"],
+      ["½ cup","Grated parmesan"],
+      ["","Sliced sous-vide sirloin (Costco)"],
+      ["","Salt, pepper, and parsley"]
+    ],
+    steps:[
+      {title:"Noodles",text:"Cook the noodles per the package, then drain."},
+      {title:"Garlic butter",text:"Melt the butter and cook the garlic for 1 minute.",time:"1 min"},
+      {title:"Toss",text:"Toss the noodles in the garlic butter with the parmesan."},
+      {title:"Top",text:"Top with warmed steak slices."}
+    ],
+    notes:[]
+  },
+  {
+    id:"stir-fry", cat:"meals", navLabel:"Chicken Stir-Fry",
+    title:"Chicken Stir-Fry",
+    desc:"",
+    meta:["Meal","2 servings","20 min"],
+    ingredients:[
+      ["1 lb","Chicken thighs, sliced thin"],
+      ["2 cups","Broccoli florets"],
+      ["1","Bell pepper, sliced"],
+      ["1 cup","Sliced mushrooms"],
+      ["2 tbsp","Avocado oil"],
+      ["","— SAUCE —"],
+      ["3 tbsp","Coconut aminos"],
+      ["1 tbsp","Honey"],
+      ["1 tbsp","Rice vinegar"],
+      ["1 tsp","Grated ginger"],
+      ["2","Garlic cloves, minced"]
+    ],
+    steps:[
+      {title:"Sear chicken",text:"Sear the chicken in the oil over high heat until cooked, then set aside."},
+      {title:"Veggies",text:"Stir-fry the vegetables for 4–5 minutes.",time:"4-5 min"},
+      {title:"Combine",text:"Add the chicken and sauce, and toss for 1 minute.",time:"1 min"},
+      {title:"Serve",text:"Serve over white rice or rice noodles."}
+    ],
+    notes:[]
+  },
+  {
+    id:"pho", cat:"meals", navLabel:"Pho",
+    title:"Pho-Style Noodle Soup",
+    desc:"",
+    meta:["Meal","2 servings","25 min"],
+    ingredients:[
+      ["4 cups","Bone broth"],
+      ["1-inch piece","Ginger, sliced"],
+      ["2","Garlic cloves, smashed"],
+      ["1 each","Star anise and cinnamon stick"],
+      ["1 tbsp","Coconut aminos"],
+      ["1 tsp","Fish sauce (Red Boat), optional"],
+      ["4 oz","Rice noodles"],
+      ["","Shredded chicken or thin-sliced steak"],
+      ["","— TOPPINGS —"],
+      ["","Green onion, cilantro, lime, sliced jalapeño"]
+    ],
+    steps:[
+      {title:"Simmer broth",text:"Simmer the broth with the ginger, garlic, star anise, cinnamon, aminos, and fish sauce for 15 minutes, then strain.",time:"15 min"},
+      {title:"Noodles",text:"Cook the noodles separately and put them in bowls."},
+      {title:"Assemble",text:"Add the meat and pour the hot broth over."},
+      {title:"Top",text:"Add the toppings."}
+    ],
+    notes:[
+      "If you use thin raw steak, the hot broth cooks it in the bowl."
+    ]
   }
 ];
 
+const categories = [
+  {id:"bread", label:"Breads"},
+  {id:"breakfast", label:"Breakfast"},
+  {id:"sweets", label:"Sweets"},
+  {id:"meals", label:"Meals"}
+];
+
 let activeRecipe = 0;
+let activeCat = recipes[0].cat;
 
 function render() {
+  const catNav = document.getElementById('catNav');
+  catNav.innerHTML = categories.map(c =>
+    '<button class="cat-btn '+(c.id===activeCat?'active':'')+'" onclick="setCat(\''+c.id+'\')">'+c.label+'</button>'
+  ).join('');
+
   const nav = document.getElementById('recipeNav');
-  nav.innerHTML = recipes.map((r,i) =>
+  nav.innerHTML = recipes.map((r,i) => r.cat!==activeCat ? '' :
     '<button class="recipe-btn '+(i===activeRecipe?'active':'')+'" onclick="setRecipe('+i+')">'+r.navLabel+'</button>'
   ).join('');
 
@@ -401,7 +588,7 @@ function render() {
   container.innerHTML = recipes.map((r,i) => {
     let html = '<div class="recipe '+(i===activeRecipe?'active':'')+'">';
     html += '<div class="recipe-title">'+r.title+'</div>';
-    html += '<div class="recipe-desc">'+r.desc+'</div>';
+    if(r.desc) html += '<div class="recipe-desc">'+r.desc+'</div>';
     html += '<div class="recipe-meta">';
     r.meta.forEach(function(m){ html += '<span class="meta-item">'+m+'</span>'; });
     html += '</div>';
@@ -422,15 +609,31 @@ function render() {
       html += '</div><div style="margin-left:30px;">'+s.text+'</div></div>';
     });
     html += '</div></div>';
-    html += '<div class="notes-card"><div class="notes-title">NOTES</div><div class="notes-text">';
-    r.notes.forEach(function(n){ html += '<p>• '+n+'</p>'; });
-    html += '</div></div></div>';
+    if(r.notes && r.notes.length){
+      html += '<div class="notes-card"><div class="notes-title">NOTES</div><div class="notes-text">';
+      r.notes.forEach(function(n){ html += '<p>• '+n+'</p>'; });
+      html += '</div></div>';
+    }
+    html += '</div>';
     return html;
   }).join('');
 }
 
-function setRecipe(i) { activeRecipe=i; render(); window.scrollTo(0,0); }
-render();
+function setRecipe(i) {
+  activeRecipe=i; activeCat=recipes[i].cat; render(); window.scrollTo(0,0);
+  const btn=document.querySelector('.recipe-btn.active'); if(btn) btn.scrollIntoView({inline:'nearest',block:'nearest'});
+  try { history.replaceState(null,'','#'+recipes[i].id); } catch(e) {}
+}
+function setCat(c) {
+  const first = recipes.findIndex(r => r.cat===c);
+  if(first>=0) setRecipe(first);
+}
+
+(function(){
+  const fromHash = recipes.findIndex(r => '#'+r.id===location.hash);
+  if(fromHash>=0){ activeRecipe=fromHash; activeCat=recipes[fromHash].cat; }
+  render();
+})();
 </script>
 </body>
 </html>
